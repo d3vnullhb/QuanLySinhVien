@@ -70,6 +70,7 @@ public class LoginFrame extends JFrame {
         JLabel lblUser = new JLabel("Tài khoản");
         txtUser = new JTextField();
         txtUser.setPreferredSize(new Dimension(250, 30));
+        txtUser.addActionListener(e -> txtPass.requestFocus());
 
         JLabel lblPass = new JLabel("Mật khẩu");
         txtPass = new JPasswordField();
