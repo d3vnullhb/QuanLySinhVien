@@ -8,12 +8,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.prefs.Preferences;
 
 public class LoginFrame extends JFrame {
 
     private JTextField txtUser;
     private JPasswordField txtPass;
     private JButton btnLogin;
+
+    private JCheckBox chkRemember;
+    private JButton btnForgot;
 
     private JLabel lblImage;
     private Image originalImage;
@@ -69,12 +73,22 @@ public class LoginFrame extends JFrame {
         txtPass.setPreferredSize(new Dimension(250, 30));
 
         btnLogin = new JButton("Đăng nhập");
-        btnLogin.setBackground(new Color(108, 92, 231));
+        btnLogin.setBackground(new Color(111, 99, 221)); // tím login
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnLogin.setFocusPainted(false);
         btnLogin.setPreferredSize(new Dimension(140, 35));
 
+        chkRemember = new JCheckBox("Ghi nhớ đăng nhập");
+        chkRemember.setBackground(Color.WHITE);
+
+        btnForgot = new JButton("Quên mật khẩu?");
+        btnForgot.setBorderPainted(false);
+        btnForgot.setContentAreaFilled(false);
+        btnForgot.setForeground(new Color(111, 99, 221));
+        btnForgot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // ===== ADD COMPONENTS =====
         gbc.gridx = 0; gbc.gridy = 0;
         rightPanel.add(lblTitle, gbc);
 
@@ -94,6 +108,13 @@ public class LoginFrame extends JFrame {
         rightPanel.add(txtPass, gbc);
 
         gbc.gridy++;
+        gbc.anchor = GridBagConstraints.WEST;
+        rightPanel.add(chkRemember, gbc);
+
+        gbc.gridy++;
+        rightPanel.add(btnForgot, gbc);
+
+        gbc.gridy++;
         gbc.anchor = GridBagConstraints.CENTER;
         rightPanel.add(btnLogin, gbc);
 
@@ -110,13 +131,41 @@ public class LoginFrame extends JFrame {
 
             if (tk != null) {
                 Session.currentUser = tk;
+
+                Preferences prefs = Preferences.userRoot().node("QLSV");
+                if (chkRemember.isSelected()) {
+                    prefs.put("username", tk.getTenDangNhap());
+                } else {
+                    prefs.remove("username");
+                }
+
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
-                new MainFrame().setVisible(true);
+                MainFrame main = new MainFrame();
+                main.setLocationRelativeTo(null);
+                main.setVisible(true);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
             }
         });
+
+        // ===== QUÊN MẬT KHẨU =====
+        btnForgot.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng liên hệ Phòng Quản lý sinh viên \nđể được cấp lại mật khẩu.",
+                    "Quên mật khẩu",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        // ===== GHI NHỚ USERNAME =====
+        Preferences prefs = Preferences.userRoot().node("QLSV");
+        String savedUser = prefs.get("username", null);
+        if (savedUser != null) {
+            txtUser.setText(savedUser);
+            chkRemember.setSelected(true);
+        }
 
         getRootPane().setDefaultButton(btnLogin);
         scaleImage();
