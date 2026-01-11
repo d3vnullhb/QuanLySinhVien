@@ -3,6 +3,11 @@ package ui;
 import util.Session;
 import ui.panels.DashboardPanel;
 import ui.panels.LopPanel;
+import ui.panels.MonHocPanel;
+//import ui.panels.GiangVienPanel;
+import ui.panels.PhanCongPanel;
+import ui.panels.ThoiKhoaBieuPanel;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -36,13 +41,14 @@ public class MainFrame extends JFrame {
 
     // ================= SIDEBAR =================
    private void initSidebar() {
-    sidebar = new JPanel(new GridLayout(8, 1));
+    sidebar = new JPanel(new GridLayout(9, 1));
     sidebar.setPreferredSize(new Dimension(220, 0));
     sidebar.setBackground(SIDEBAR_COLOR);
 
     JButton btnHome = createMenuButton("Trang chủ", "home.png");
     JButton btnSinhVien = createMenuButton("Quản lý sinh viên", "student.png");
     JButton btnLop = createMenuButton("Quản lý lớp", "class.png");
+    JButton btnPhanCong = createMenuButton("Phân công giảng dạy", "assignment.png");
     JButton btnTKB = createMenuButton("Quản lý TKB", "timetable.png");
     JButton btnDiem = createMenuButton("Quản lý điểm", "score.png");
     JButton btnMonHoc = createMenuButton("Quản lý môn học", "subject.png");
@@ -51,6 +57,7 @@ public class MainFrame extends JFrame {
     sidebar.add(btnHome);
     sidebar.add(btnSinhVien);
     sidebar.add(btnLop);
+    sidebar.add(btnPhanCong); 
     sidebar.add(btnTKB);
     sidebar.add(btnDiem);
     sidebar.add(btnMonHoc);
@@ -61,7 +68,9 @@ public class MainFrame extends JFrame {
 
     btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
     btnLop.addActionListener(e -> cardLayout.show(contentPanel, "lop"));
-    // tạm thời các nút khác chưa gắn cũng không sao
+    btnMonHoc.addActionListener(e -> cardLayout.show(contentPanel, "monhoc"));
+    btnPhanCong.addActionListener(e -> cardLayout.show(contentPanel, "phancong"));
+    btnTKB.addActionListener(e -> cardLayout.show(contentPanel, "tkb"));
 
     btnLogout.addActionListener(e -> {
         int c = JOptionPane.showConfirmDialog(
@@ -119,7 +128,7 @@ public class MainFrame extends JFrame {
     // ================= TOP PANEL =================
     private void initTopPanel() {
         topPanel = new JPanel(new BorderLayout());
-        topPanel.setPreferredSize(new Dimension(0, 120));
+        topPanel.setPreferredSize(new Dimension(0, 50));
         topPanel.setBackground(Color.WHITE);
 
         lblWelcome = new JLabel(
@@ -163,6 +172,9 @@ private void initContent() {
    
     contentPanel.add(new DashboardPanel(), "dashboard");
     contentPanel.add(new LopPanel(), "lop");
+    contentPanel.add(new MonHocPanel(), "monhoc");
+    contentPanel.add(new PhanCongPanel(), "phancong");
+    contentPanel.add(new ThoiKhoaBieuPanel(), "tkb");
 
 
     cardLayout.show(contentPanel, "dashboard");

@@ -1,30 +1,30 @@
 package ui.panels;
 
-import dao.LopDB;
-import model.Lop;
+import dao.MonHocDB;
+import model.MonHoc;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class LopPanel extends JPanel {
+public class MonHocPanel extends JPanel {
 
     private JTable table;
     private DefaultTableModel tableModel;
 
-    private JTextField txtMaLop;
-    private JTextField txtTenLop;
-    private JComboBox<String> cboKhoa;
+    private JTextField txtMaMon;
+    private JTextField txtTenMon;
+    private JTextField txtSoTinChi;
 
-    private LopDB lopDB = new LopDB();
+    private MonHocDB monHocDB = new MonHocDB();
 
-    public LopPanel() {
+    public MonHocPanel() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
         // ===== TITLE =====
-        JLabel lblTitle = new JLabel("QUẢN LÝ LỚP", SwingConstants.CENTER);
+        JLabel lblTitle = new JLabel("QUẢN LÝ MÔN HỌC", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(lblTitle, BorderLayout.NORTH);
@@ -35,33 +35,31 @@ public class LopPanel extends JPanel {
 
         // ===== FORM =====
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin lớp"));
+        formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin môn học"));
         formPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        txtMaLop = new JTextField(15);
-        txtTenLop = new JTextField(15);
-        cboKhoa = new JComboBox<>();
-
-        loadKhoa(); 
+        txtMaMon = new JTextField(15);
+        txtTenMon = new JTextField(15);
+        txtSoTinChi = new JTextField(15);
 
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Mã lớp:"), gbc);
+        formPanel.add(new JLabel("Mã môn:"), gbc);
         gbc.gridx = 1;
-        formPanel.add(txtMaLop, gbc);
+        formPanel.add(txtMaMon, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Tên lớp:"), gbc);
+        formPanel.add(new JLabel("Tên môn:"), gbc);
         gbc.gridx = 1;
-        formPanel.add(txtTenLop, gbc);
+        formPanel.add(txtTenMon, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
-        formPanel.add(new JLabel("Khoa:"), gbc);
+        formPanel.add(new JLabel("Số tín chỉ:"), gbc);
         gbc.gridx = 1;
-        formPanel.add(cboKhoa, gbc);
+        formPanel.add(txtSoTinChi, gbc);
 
         // ===== BUTTONS =====
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
@@ -71,7 +69,7 @@ public class LopPanel extends JPanel {
         JButton btnUpdate = new JButton("Sửa");
         JButton btnDelete = new JButton("Xóa");
         JButton btnReset = new JButton("Làm mới");
-        
+
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
@@ -84,8 +82,9 @@ public class LopPanel extends JPanel {
 
         // ===== TABLE =====
         tableModel = new DefaultTableModel(
-                new Object[]{"Mã lớp", "Tên lớp", "Khoa"}, 0
+                new Object[]{"Mã môn", "Tên môn", "Số tín chỉ"}, 0
         ) {
+            @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
@@ -102,103 +101,112 @@ public class LopPanel extends JPanel {
 
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
 
-        btnAdd.addActionListener(e -> addLop());
-        btnUpdate.addActionListener(e -> updateLop());
-        btnDelete.addActionListener(e -> deleteLop());
+        btnAdd.addActionListener(e -> addMonHoc());
+        btnUpdate.addActionListener(e -> updateMonHoc());
+        btnDelete.addActionListener(e -> deleteMonHoc());
         btnReset.addActionListener(e -> clearForm());
     }
 
     // ===== LOAD DATA =====
     private void loadData() {
         tableModel.setRowCount(0);
-        List<Lop> list = lopDB.getAllActive();
+        List<MonHoc> list = monHocDB.getAllActive();
 
-        for (Lop lop : list) {
+        for (MonHoc mh : list) {
             tableModel.addRow(new Object[]{
-                    lop.getMaLop(),
-                    lop.getTenLop(),
-                    lop.getTenKhoa()
+                    mh.getMaMon(),
+                    mh.getTenMon(),
+                    mh.getSoTinChi()
             });
         }
-    }
-
-    private void loadKhoa() {
-        cboKhoa.removeAllItems();
-        cboKhoa.addItem("CNTT");
-        cboKhoa.addItem("QTKD");
-        cboKhoa.addItem("KT");
-        cboKhoa.addItem("NN");
-        cboKhoa.addItem("CK");
-        cboKhoa.addItem("DL");
     }
 
     // ===== FILL FORM =====
     private void fillForm() {
         int row = table.getSelectedRow();
         if (row >= 0) {
-            txtMaLop.setText(table.getValueAt(row, 0).toString());
-            txtTenLop.setText(table.getValueAt(row, 1).toString());
-            cboKhoa.setSelectedItem(table.getValueAt(row, 2).toString());
-            txtMaLop.setEnabled(false);
+            txtMaMon.setText(table.getValueAt(row, 0).toString());
+            txtTenMon.setText(table.getValueAt(row, 1).toString());
+            txtSoTinChi.setText(table.getValueAt(row, 2).toString());
+            txtMaMon.setEnabled(false);
         }
     }
 
     // ===== ADD =====
-    private void addLop() {
-        if (txtMaLop.getText().isEmpty() || txtTenLop.getText().isEmpty()) {
+    private void addMonHoc() {
+        if (txtMaMon.getText().isEmpty()
+                || txtTenMon.getText().isEmpty()
+                || txtSoTinChi.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu!");
             return;
         }
 
-        Lop lop = new Lop();
-        lop.setMaLop(txtMaLop.getText().trim());
-        lop.setTenLop(txtTenLop.getText().trim());
-        lop.setMaKhoa(cboKhoa.getSelectedItem().toString());
+        int soTC;
+        try {
+            soTC = Integer.parseInt(txtSoTinChi.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Số tín chỉ phải là số!");
+            return;
+        }
 
-        if (lopDB.insert(lop)) {
-            JOptionPane.showMessageDialog(this, "Thêm lớp thành công!");
+        MonHoc mh = new MonHoc();
+        mh.setMaMon(txtMaMon.getText().trim());
+        mh.setTenMon(txtTenMon.getText().trim());
+        mh.setSoTinChi(soTC);
+
+        if (monHocDB.insert(mh)) {
+            JOptionPane.showMessageDialog(this, "Thêm môn học thành công!");
             clearForm();
             loadData();
         }
     }
 
     // ===== UPDATE =====
-    private void updateLop() {
+    private void updateMonHoc() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn lớp cần sửa!");
+            JOptionPane.showMessageDialog(this, "Chọn môn học cần sửa!");
             return;
         }
 
-        Lop lop = new Lop();
-        lop.setMaLop(txtMaLop.getText());
-        lop.setTenLop(txtTenLop.getText());
-        lop.setMaKhoa(cboKhoa.getSelectedItem().toString());
+        int soTC;
+        try {
+            soTC = Integer.parseInt(txtSoTinChi.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Số tín chỉ phải là số!");
+            return;
+        }
 
-        if (lopDB.update(lop)) {
+        MonHoc mh = new MonHoc();
+        mh.setMaMon(txtMaMon.getText());
+        mh.setTenMon(txtTenMon.getText());
+        mh.setSoTinChi(soTC);
+
+        if (monHocDB.update(mh)) {
             JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
             clearForm();
             loadData();
         }
     }
 
-    private void deleteLop() {
+    // ===== DELETE (SOFT) =====
+    private void deleteMonHoc() {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn lớp cần xóa!");
+            JOptionPane.showMessageDialog(this, "Chọn môn học cần xóa!");
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc muốn xóa lớp này?",
+                "Bạn có chắc muốn xóa môn học này?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            String maLop = txtMaLop.getText();
-            if (lopDB.softDelete(maLop)) {
+            String maMon = txtMaMon.getText();
+            if (monHocDB.softDelete(maMon)) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!");
                 clearForm();
                 loadData();
@@ -206,11 +214,12 @@ public class LopPanel extends JPanel {
         }
     }
 
+    // ===== CLEAR FORM =====
     private void clearForm() {
-        txtMaLop.setText("");
-        txtTenLop.setText("");
-        cboKhoa.setSelectedIndex(0);
-        txtMaLop.setEnabled(true);
+        txtMaMon.setText("");
+        txtTenMon.setText("");
+        txtSoTinChi.setText("");
+        txtMaMon.setEnabled(true);
         table.clearSelection();
     }
 }

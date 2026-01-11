@@ -4,7 +4,7 @@ public class Lop {
     private String maLop;
     private String tenLop;
     private String maKhoa;
-    private String tenKhoa; // dùng khi JOIN
+    private String tenKhoa; 
 
     public Lop() {
     }
