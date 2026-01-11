@@ -19,6 +19,10 @@ public class LoginFrame extends JFrame {
     private JCheckBox chkRemember;
     private JButton btnForgot;
 
+    // ===== EYE ICON =====
+    private JLabel lblEye;
+    private boolean showPassword = false;
+
     private JLabel lblImage;
     private Image originalImage;
 
@@ -42,7 +46,6 @@ public class LoginFrame extends JFrame {
         lblImage.setVerticalAlignment(JLabel.CENTER);
 
         leftPanel.add(lblImage, BorderLayout.CENTER);
-
         leftPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -73,7 +76,7 @@ public class LoginFrame extends JFrame {
         txtPass.setPreferredSize(new Dimension(250, 30));
 
         btnLogin = new JButton("Đăng nhập");
-        btnLogin.setBackground(new Color(111, 99, 221)); // tím login
+        btnLogin.setBackground(new Color(111, 99, 221));
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnLogin.setFocusPainted(false);
@@ -104,8 +107,24 @@ public class LoginFrame extends JFrame {
         gbc.gridy++;
         rightPanel.add(lblPass, gbc);
 
+        // ===== PASSWORD + EYE ICON (ĐÃ SCALE) =====
+        JPanel passPanel = new JPanel(new BorderLayout());
+        passPanel.setBackground(Color.WHITE);
+        passPanel.add(txtPass, BorderLayout.CENTER);
+
+        ImageIcon eyeIcon = new ImageIcon(
+                getClass().getResource("/images/eye.png")
+        );
+        Image eyeImg = eyeIcon.getImage()
+                .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+        lblEye = new JLabel(new ImageIcon(eyeImg));
+        lblEye.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblEye.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+
+        passPanel.add(lblEye, BorderLayout.EAST);
+
         gbc.gridy++;
-        rightPanel.add(txtPass, gbc);
+        rightPanel.add(passPanel, gbc);
 
         gbc.gridy++;
         gbc.anchor = GridBagConstraints.WEST;
@@ -120,6 +139,40 @@ public class LoginFrame extends JFrame {
 
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.CENTER);
+
+        // ===== EYE CLICK EVENT =====
+       char defaultEcho = txtPass.getEchoChar();
+
+    lblEye.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+
+                if (!showPassword) {                 
+                    txtPass.setEchoChar((char) 0);
+
+                    ImageIcon icon = new ImageIcon(
+                            getClass().getResource("/images/eye_off.png")
+                    );
+                    Image img = icon.getImage()
+                            .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                    lblEye.setIcon(new ImageIcon(img));
+
+                    showPassword = true;
+                } else {                  
+                    txtPass.setEchoChar(defaultEcho);
+
+                    ImageIcon icon = new ImageIcon(
+                            getClass().getResource("/images/eye.png")
+                    );
+                    Image img = icon.getImage()
+                            .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                    lblEye.setIcon(new ImageIcon(img));
+
+                    showPassword = false;
+                }
+            }
+        });
+
 
         // ===== LOGIN EVENT =====
         btnLogin.addActionListener(e -> {
@@ -140,9 +193,7 @@ public class LoginFrame extends JFrame {
                 }
 
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
-                MainFrame main = new MainFrame();
-                main.setLocationRelativeTo(null);
-                main.setVisible(true);
+                new MainFrame().setVisible(true);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
@@ -153,7 +204,7 @@ public class LoginFrame extends JFrame {
         btnForgot.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
-                    "Vui lòng liên hệ Phòng Quản lý sinh viên \nđể được cấp lại mật khẩu.",
+                    "Vui lòng liên hệ Phòng Quản lý sinh viên\nđể được cấp lại mật khẩu.",
                     "Quên mật khẩu",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -171,6 +222,7 @@ public class LoginFrame extends JFrame {
         scaleImage();
     }
 
+   
     private void scaleImage() {
         if (originalImage == null || lblImage.getWidth() == 0 || lblImage.getHeight() == 0)
             return;

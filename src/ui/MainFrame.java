@@ -116,40 +116,83 @@ public class MainFrame extends JFrame {
         lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblWelcome.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 10));
 
-        JPanel cardPanel = new JPanel(new GridLayout(1, 3, 15, 0));
-        cardPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JPanel cardPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        cardPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         cardPanel.setBackground(Color.WHITE);
 
-      
-        cardPanel.add(createCard("Thêm danh sách lớp", new Color(108, 92, 231)));
-        cardPanel.add(createCard("Xem danh sách lớp", new Color(108, 92, 231)));
-        cardPanel.add(createCard("Thêm sinh viên", new Color(108, 92, 231)));
-
+        cardPanel.add(
+        createCard("Thêm danh sách lớp", "add.png", new Color(108, 92, 231)));
+        cardPanel.add(
+        createCard("Xem danh sách lớp", "see.png", new Color(108, 92, 231)));
+        cardPanel.add(
+        createCard("Thêm sinh viên", "add.png", new Color(108, 92, 231)));
         topPanel.add(lblWelcome, BorderLayout.NORTH);
         topPanel.add(cardPanel, BorderLayout.CENTER);
     }
 
-    private JPanel createCard(String text, Color bg) {
+    private JPanel createCard(String text, String iconName, Color bg) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(bg);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel lbl = new JLabel(text);
+        JLabel lbl = new JLabel(text, SwingConstants.CENTER);
         lbl.setForeground(Color.WHITE);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        ImageIcon icon = new ImageIcon(
+                getClass().getResource("/images/" + iconName)
+        );
+        Image img = icon.getImage().getScaledInstance(22, 22, Image.SCALE_SMOOTH);
+        lbl.setIcon(new ImageIcon(img));
+        lbl.setIconTextGap(10); 
+
+       
+        lbl.setHorizontalTextPosition(SwingConstants.RIGHT);
+        lbl.setVerticalTextPosition(SwingConstants.CENTER);
 
         panel.add(lbl, BorderLayout.CENTER);
         return panel;
     }
 
+
     // ================= CONTENT =================
-    private void initContent() {
-        contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(new Color(245, 245, 245));
+   private void initContent() {
+    contentPanel = new JPanel(new BorderLayout());
+    contentPanel.setBackground(Color.WHITE);
 
-        JLabel lbl = new JLabel("Dashboard", SwingConstants.CENTER);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 22));
+    // ===== TIÊU ĐỀ =====
+    JLabel lblTitle = new JLabel(
+            "Hệ thống quản lý sinh viên",
+            SwingConstants.CENTER
+    );
+    lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+    lblTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
 
-        contentPanel.add(lbl, BorderLayout.CENTER);
-    }
+    // ===== ẢNH DASHBOARD =====
+    ImageIcon icon = new ImageIcon(
+            getClass().getResource("/images/dashboard.png")
+    );
+    Image originalImage = icon.getImage();
+
+    JLabel lblImage = new JLabel();
+    lblImage.setHorizontalAlignment(SwingConstants.CENTER);
+
+    // scale ảnh theo kích thước panel
+    contentPanel.addComponentListener(new java.awt.event.ComponentAdapter() {
+        @Override
+        public void componentResized(java.awt.event.ComponentEvent e) {
+            int w = contentPanel.getWidth();
+            int h = contentPanel.getHeight();
+
+            Image scaled = originalImage.getScaledInstance(
+                    w - 80, h - 120, Image.SCALE_SMOOTH
+            );
+            lblImage.setIcon(new ImageIcon(scaled));
+        }
+    });
+
+    contentPanel.add(lblTitle, BorderLayout.NORTH);
+    contentPanel.add(lblImage, BorderLayout.CENTER);
+}
 }
