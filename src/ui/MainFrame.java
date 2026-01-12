@@ -4,7 +4,7 @@ import util.Session;
 import ui.panels.DashboardPanel;
 import ui.panels.LopPanel;
 import ui.panels.MonHocPanel;
-//import ui.panels.GiangVienPanel;
+import ui.panels.GiangVienPanel;
 import ui.panels.PhanCongPanel;
 import ui.panels.ThoiKhoaBieuPanel;
 
@@ -41,13 +41,14 @@ public class MainFrame extends JFrame {
 
     // ================= SIDEBAR =================
    private void initSidebar() {
-    sidebar = new JPanel(new GridLayout(9, 1));
+    sidebar = new JPanel(new GridLayout(10, 1));
     sidebar.setPreferredSize(new Dimension(220, 0));
     sidebar.setBackground(SIDEBAR_COLOR);
 
     JButton btnHome = createMenuButton("Trang chủ", "home.png");
     JButton btnSinhVien = createMenuButton("Quản lý sinh viên", "student.png");
     JButton btnLop = createMenuButton("Quản lý lớp", "class.png");
+    JButton btnGiangVien = createMenuButton("Quản lý giảng viên", "teacher.png");
     JButton btnPhanCong = createMenuButton("Phân công giảng dạy", "assignment.png");
     JButton btnTKB = createMenuButton("Quản lý TKB", "timetable.png");
     JButton btnDiem = createMenuButton("Quản lý điểm", "score.png");
@@ -57,6 +58,7 @@ public class MainFrame extends JFrame {
     sidebar.add(btnHome);
     sidebar.add(btnSinhVien);
     sidebar.add(btnLop);
+    sidebar.add(btnGiangVien);
     sidebar.add(btnPhanCong); 
     sidebar.add(btnTKB);
     sidebar.add(btnDiem);
@@ -69,6 +71,7 @@ public class MainFrame extends JFrame {
     btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
     btnLop.addActionListener(e -> cardLayout.show(contentPanel, "lop"));
     btnMonHoc.addActionListener(e -> cardLayout.show(contentPanel, "monhoc"));
+    btnGiangVien.addActionListener(e -> cardLayout.show(contentPanel, "giangvien"));
     btnPhanCong.addActionListener(e -> cardLayout.show(contentPanel, "phancong"));
     btnTKB.addActionListener(e -> cardLayout.show(contentPanel, "tkb"));
 
@@ -173,6 +176,7 @@ private void initContent() {
     contentPanel.add(new DashboardPanel(), "dashboard");
     contentPanel.add(new LopPanel(), "lop");
     contentPanel.add(new MonHocPanel(), "monhoc");
+    contentPanel.add(new GiangVienPanel(), "giangvien");
     contentPanel.add(new PhanCongPanel(), "phancong");
     contentPanel.add(new ThoiKhoaBieuPanel(), "tkb");
 
