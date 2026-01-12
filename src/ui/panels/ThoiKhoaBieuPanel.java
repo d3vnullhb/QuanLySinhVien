@@ -26,10 +26,13 @@ public class ThoiKhoaBieuPanel extends JPanel {
         add(title, BorderLayout.NORTH);
 
         model = new DefaultTableModel(
-            new Object[]{"ID","Lớp","Môn","GV","Thứ","Tiết BD","Số tiết","Phòng","HK","Năm học"},0
+           new Object[]{"STT","ID","Lớp","Môn","GV","Thứ","Tiết BD","Số tiết","Phòng","HK","Năm học"},0
         );
         table = new JTable(model);
         table.setRowHeight(26);
+        table.getColumnModel().getColumn(1).setMinWidth(0);
+        table.getColumnModel().getColumn(1).setMaxWidth(0);
+        table.getColumnModel().getColumn(1).setPreferredWidth(0);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         JPanel bottom = new JPanel();
@@ -49,20 +52,28 @@ public class ThoiKhoaBieuPanel extends JPanel {
     private void loadData() {
         model.setRowCount(0);
         List<ThoiKhoaBieu> list = db.getAllActive();
+        int stt = 1;
         for (ThoiKhoaBieu t : list) {
             model.addRow(new Object[]{
-                t.getMaTKB(), t.getMaLop(), t.getTenMon(), t.getTenGV(),
-                t.getThu(), t.getTietBatDau(), t.getSoTiet(),
-                t.getPhong(), t.getHocKy(), t.getNamHoc()
-            });
-        }
+                stt++,                 
+                t.getMaTKB(),           
+                t.getMaLop(),
+                t.getTenMon(),
+                t.getTenGV(),
+                t.getThu(),
+                t.getTietBatDau(),
+                t.getSoTiet(),
+                t.getPhong(),
+                t.getHocKy(),
+                t.getNamHoc()
+    });
     }
+}
 
     private void deleteTKB() {
         int row = table.getSelectedRow();
         if (row < 0) return;
-
-        int id = (int) table.getValueAt(row, 0);
+        int id = (int) table.getValueAt(row, 1);       
         if (db.softDelete(id)) loadData();
     }
 

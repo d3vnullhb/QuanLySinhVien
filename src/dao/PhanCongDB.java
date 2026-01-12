@@ -6,6 +6,8 @@ import util.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
+
 
 public class PhanCongDB {
 
@@ -44,7 +46,6 @@ public class PhanCongDB {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return list;
     }
@@ -85,5 +86,9 @@ public class PhanCongDB {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean update(int maPC, String maGV, String maMon, String maLop, int hocKy, String namHoc) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

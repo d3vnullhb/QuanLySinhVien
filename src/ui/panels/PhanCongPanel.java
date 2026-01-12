@@ -14,8 +14,8 @@ import java.util.List;
 
 public class PhanCongPanel extends JPanel {
 
-    private JTable table;
-    private DefaultTableModel tableModel;
+    private final JTable table;
+    private final DefaultTableModel tableModel;
 
     private JComboBox<String> cboGiangVien;
     private JComboBox<String> cboMonHoc;
@@ -245,7 +245,6 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboGiangVien.addItem(rs.getString("MaGV") + " - " + rs.getString("HoTen"));
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -258,7 +257,6 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboMonHoc.addItem(rs.getString("MaMon") + " - " + rs.getString("TenMon"));
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -271,7 +269,6 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboLop.addItem(rs.getString("MaLop"));
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
