@@ -8,12 +8,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.prefs.Preferences;
 
 public class LoginFrame extends JFrame {
 
     private JTextField txtUser;
     private JPasswordField txtPass;
     private JButton btnLogin;
+
+    private JCheckBox chkRemember;
+    private JButton btnForgot;
+
+    // ===== EYE ICON =====
+    private JLabel lblEye;
+    private boolean showPassword = false;
 
     private JLabel lblImage;
     private Image originalImage;
@@ -38,7 +46,6 @@ public class LoginFrame extends JFrame {
         lblImage.setVerticalAlignment(JLabel.CENTER);
 
         leftPanel.add(lblImage, BorderLayout.CENTER);
-
         leftPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -63,18 +70,29 @@ public class LoginFrame extends JFrame {
         JLabel lblUser = new JLabel("Tài khoản");
         txtUser = new JTextField();
         txtUser.setPreferredSize(new Dimension(250, 30));
+        txtUser.addActionListener(e -> txtPass.requestFocus());
 
         JLabel lblPass = new JLabel("Mật khẩu");
         txtPass = new JPasswordField();
         txtPass.setPreferredSize(new Dimension(250, 30));
 
         btnLogin = new JButton("Đăng nhập");
-        btnLogin.setBackground(new Color(108, 92, 231));
+        btnLogin.setBackground(new Color(111, 99, 221));
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnLogin.setFocusPainted(false);
         btnLogin.setPreferredSize(new Dimension(140, 35));
 
+        chkRemember = new JCheckBox("Ghi nhớ đăng nhập");
+        chkRemember.setBackground(Color.WHITE);
+
+        btnForgot = new JButton("Quên mật khẩu?");
+        btnForgot.setBorderPainted(false);
+        btnForgot.setContentAreaFilled(false);
+        btnForgot.setForeground(new Color(111, 99, 221));
+        btnForgot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // ===== ADD COMPONENTS =====
         gbc.gridx = 0; gbc.gridy = 0;
         rightPanel.add(lblTitle, gbc);
 
@@ -90,8 +108,31 @@ public class LoginFrame extends JFrame {
         gbc.gridy++;
         rightPanel.add(lblPass, gbc);
 
+        // ===== PASSWORD + EYE ICON (ĐÃ SCALE) =====
+        JPanel passPanel = new JPanel(new BorderLayout());
+        passPanel.setBackground(Color.WHITE);
+        passPanel.add(txtPass, BorderLayout.CENTER);
+
+        ImageIcon eyeIcon = new ImageIcon(
+                getClass().getResource("/images/eye.png")
+        );
+        Image eyeImg = eyeIcon.getImage()
+                .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+        lblEye = new JLabel(new ImageIcon(eyeImg));
+        lblEye.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblEye.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+
+        passPanel.add(lblEye, BorderLayout.EAST);
+
         gbc.gridy++;
-        rightPanel.add(txtPass, gbc);
+        rightPanel.add(passPanel, gbc);
+
+        gbc.gridy++;
+        gbc.anchor = GridBagConstraints.WEST;
+        rightPanel.add(chkRemember, gbc);
+
+        gbc.gridy++;
+        rightPanel.add(btnForgot, gbc);
 
         gbc.gridy++;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -99,6 +140,40 @@ public class LoginFrame extends JFrame {
 
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.CENTER);
+
+        // ===== EYE CLICK EVENT =====
+       char defaultEcho = txtPass.getEchoChar();
+
+    lblEye.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+
+                if (!showPassword) {                 
+                    txtPass.setEchoChar((char) 0);
+
+                    ImageIcon icon = new ImageIcon(
+                            getClass().getResource("/images/eye_off.png")
+                    );
+                    Image img = icon.getImage()
+                            .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                    lblEye.setIcon(new ImageIcon(img));
+
+                    showPassword = true;
+                } else {                  
+                    txtPass.setEchoChar(defaultEcho);
+
+                    ImageIcon icon = new ImageIcon(
+                            getClass().getResource("/images/eye.png")
+                    );
+                    Image img = icon.getImage()
+                            .getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                    lblEye.setIcon(new ImageIcon(img));
+
+                    showPassword = false;
+                }
+            }
+        });
+
 
         // ===== LOGIN EVENT =====
         btnLogin.addActionListener(e -> {
@@ -110,6 +185,14 @@ public class LoginFrame extends JFrame {
 
             if (tk != null) {
                 Session.currentUser = tk;
+
+                Preferences prefs = Preferences.userRoot().node("QLSV");
+                if (chkRemember.isSelected()) {
+                    prefs.put("username", tk.getTenDangNhap());
+                } else {
+                    prefs.remove("username");
+                }
+
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
                 new MainFrame().setVisible(true);
                 this.dispose();
@@ -118,10 +201,29 @@ public class LoginFrame extends JFrame {
             }
         });
 
+        // ===== QUÊN MẬT KHẨU =====
+        btnForgot.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng liên hệ Phòng Quản lý sinh viên\nđể được cấp lại mật khẩu.",
+                    "Quên mật khẩu",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        // ===== GHI NHỚ USERNAME =====
+        Preferences prefs = Preferences.userRoot().node("QLSV");
+        String savedUser = prefs.get("username", null);
+        if (savedUser != null) {
+            txtUser.setText(savedUser);
+            chkRemember.setSelected(true);
+        }
+
         getRootPane().setDefaultButton(btnLogin);
         scaleImage();
     }
 
+   
     private void scaleImage() {
         if (originalImage == null || lblImage.getWidth() == 0 || lblImage.getHeight() == 0)
             return;
