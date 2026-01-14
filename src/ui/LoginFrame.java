@@ -108,7 +108,7 @@ public class LoginFrame extends JFrame {
         gbc.gridy++;
         rightPanel.add(lblPass, gbc);
 
-        // ===== PASSWORD + EYE ICON (ĐÃ SCALE) =====
+       
         JPanel passPanel = new JPanel(new BorderLayout());
         passPanel.setBackground(Color.WHITE);
         passPanel.add(txtPass, BorderLayout.CENTER);
@@ -141,7 +141,7 @@ public class LoginFrame extends JFrame {
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.CENTER);
 
-        // ===== EYE CLICK EVENT =====
+        
        char defaultEcho = txtPass.getEchoChar();
 
     lblEye.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -175,7 +175,7 @@ public class LoginFrame extends JFrame {
         });
 
 
-        // ===== LOGIN EVENT =====
+                // ===== LOGIN EVENT =====
         btnLogin.addActionListener(e -> {
             TaiKhoanDB db = new TaiKhoanDB();
             TaiKhoan tk = db.login(
@@ -193,13 +193,37 @@ public class LoginFrame extends JFrame {
                     prefs.remove("username");
                 }
 
+                // ===== PHÂN QUYỀN =====
+                String role = tk.getVaiTro();
+                System.out.println("ROLE = " + role); // debug rất quan trọng
+
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
-                new MainFrame().setVisible(true);
+
+                if (role.equalsIgnoreCase("ADMIN")) {
+                    new MainFrame().setVisible(true);
+
+                } else if (role.equalsIgnoreCase("GIANGVIEN")) {
+                    new TeacherMainFrame().setVisible(true);
+
+                } else if (role.equalsIgnoreCase("SINHVIEN")) {
+                    new StudentMainFrame().setVisible(true);
+
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Vai trò không hợp lệ: " + role,
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
                 this.dispose();
+
             } else {
                 JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
             }
         });
+
 
         // ===== QUÊN MẬT KHẨU =====
         btnForgot.addActionListener(e -> {
