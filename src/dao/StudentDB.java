@@ -11,7 +11,7 @@ public class StudentDB {
         try {
             String url = "jdbc:sqlserver://localhost:1433;databaseName=QuanLySinhVien;encrypt=true;trustServerCertificate=true";
             String user = "sa"; 
-            String pass = "106204"; 
+            String pass = "123456"; 
             return DriverManager.getConnection(url, user, pass);
         } catch (Exception e) {
             e.printStackTrace();

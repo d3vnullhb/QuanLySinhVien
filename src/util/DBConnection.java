@@ -11,7 +11,7 @@ public class DBConnection {
       + "encrypt=true;trustServerCertificate=true";
 
     private static final String USER = "sa";      
-    private static final String PASS = "106204";  
+    private static final String PASS = "123456";  
 
     public static Connection getConnection() {
         try {
