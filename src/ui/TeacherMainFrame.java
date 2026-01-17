@@ -3,6 +3,8 @@ package ui;
 import dao.GiangVienDB;
 import util.Session;
 import ui.panels.DashboardPanel;
+import ui.teacher.panels.NhapDiemGiangVienPanel;
+
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,9 +21,8 @@ public class TeacherMainFrame extends JFrame {
     // ===== GIẢNG VIÊN =====
     private String maGV, hoTen, email, maKhoa;
 
-    private JTable tblTKB, tblDiem;
-    private DefaultTableModel modelTKB, modelDiem;
-    private JComboBox<String> cboMon;
+    private JTable tblTKB;
+    private DefaultTableModel modelTKB;
     private JPanel profilePanel;
 
     public TeacherMainFrame() {
@@ -88,7 +89,8 @@ public class TeacherMainFrame extends JFrame {
         });
 
         btnTKB.addActionListener(e -> { cardLayout.show(contentPanel, "tkb"); loadTKB(); });
-        btnNhapDiem.addActionListener(e -> { cardLayout.show(contentPanel, "diem"); loadMon(); });
+        btnNhapDiem.addActionListener(e -> cardLayout.show(contentPanel, "diem"));
+
 
         btnLogout.addActionListener(e -> {
             int c = JOptionPane.showConfirmDialog(this,"Bạn có chắc muốn đăng xuất?","Xác nhận",JOptionPane.YES_NO_OPTION);
@@ -136,28 +138,10 @@ public class TeacherMainFrame extends JFrame {
         contentPanel.add(pnlTKB, "tkb");
 
         // ===== NHẬP ĐIỂM =====
-        JPanel pnlDiem = new JPanel(new BorderLayout());
+        // ===== NHẬP ĐIỂM (NEW PANEL) =====
+NhapDiemGiangVienPanel pnlNhapDiem = new NhapDiemGiangVienPanel(maGV);
+contentPanel.add(pnlNhapDiem, "diem");
 
-        JPanel top = new JPanel();
-        cboMon = new JComboBox<>();
-        JButton btnLoad = new JButton("Tải danh sách");
-        top.add(new JLabel("Môn:"));
-        top.add(cboMon);
-        top.add(btnLoad);
-
-        modelDiem = new DefaultTableModel(new String[]{"Mã SV","Họ tên","Lớp","CC","GK","CK","Tổng","Chữ","KQ"},0);
-        tblDiem = new JTable(modelDiem);
-
-        JButton btnSave = new JButton("Lưu điểm");
-
-        pnlDiem.add(top, BorderLayout.NORTH);
-        pnlDiem.add(new JScrollPane(tblDiem), BorderLayout.CENTER);
-        pnlDiem.add(btnSave, BorderLayout.SOUTH);
-
-        btnLoad.addActionListener(e -> loadSinhVien());
-        btnSave.addActionListener(e -> saveDiem());
-
-        contentPanel.add(pnlDiem, "diem");
     }
 
     // ================= PROFILE =================
@@ -209,34 +193,6 @@ public class TeacherMainFrame extends JFrame {
         for (Object[] row : dao.getTKBGiangVien(maGV)) modelTKB.addRow(row);
     }
 
-    private void loadMon() {
-        cboMon.removeAllItems();
-        GiangVienDB dao = new GiangVienDB();
-        for (String m : dao.getMonGiangDay(maGV)) cboMon.addItem(m);
-    }
-
-    private void loadSinhVien() {
-        modelDiem.setRowCount(0);
-        String maMon = (String) cboMon.getSelectedItem();
-        if (maMon == null) return;
-
-        GiangVienDB dao = new GiangVienDB();
-        for (Object[] row : dao.getSinhVienNhapDiem(maGV, maMon)) modelDiem.addRow(row);
-    }
-
-    private void saveDiem() {
-        GiangVienDB dao = new GiangVienDB();
-        String maMon = (String) cboMon.getSelectedItem();
-
-        for (int i = 0; i < modelDiem.getRowCount(); i++) {
-            String maSV = modelDiem.getValueAt(i, 0).toString();
-            float cc = Float.parseFloat(modelDiem.getValueAt(i, 3).toString());
-            float gk = Float.parseFloat(modelDiem.getValueAt(i, 4).toString());
-            float ck = Float.parseFloat(modelDiem.getValueAt(i, 5).toString());
-            dao.updateDiem(maSV, maMon, cc, gk, ck);
-        }
-        JOptionPane.showMessageDialog(this, "Lưu điểm thành công");
-    }
 
     // ================= BUTTON =================
     private JButton createMenuButton(String text, String iconName) {
