@@ -9,7 +9,6 @@ import java.util.List;
 
 public class TaiKhoanDB {
 
-    /* ================= LOGIN ================= */
     public TaiKhoan login(String user, String pass) {
 
         String sql = """
@@ -42,33 +41,75 @@ public class TaiKhoanDB {
     }
 
    
-    public boolean insert(String tenDangNhap, String matKhau, String vaiTro) {
+    public boolean exists(String tenDangNhap) {
+        String sql = "SELECT COUNT(*) FROM TaiKhoan WHERE TenDangNhap = ?";
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
-    String sql = """
-        INSERT INTO TaiKhoan
-        (TenDangNhap, MatKhau, Salt, VaiTro, TrangThai, NgayTao)
-        VALUES (?, ?, ?, ?, N'Hoạt động', GETDATE())
-    """;
+            ps.setString(1, tenDangNhap.trim());
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1) > 0;
 
-    try (Connection c = DBConnection.getConnection();
-         PreparedStatement ps = c.prepareStatement(sql)) {
-
-        ps.setString(1, tenDangNhap.trim()); 
-        ps.setString(2, matKhau.trim());     
-        ps.setString(3, "s1");               
-        ps.setString(4, vaiTro);              
-
-        return ps.executeUpdate() > 0;
-
-     } catch (SQLException e) {
-            System.err.println("Lỗi insert TaiKhoan:");
+        } catch (SQLException e) {
+            System.err.println("Lỗi exists TaiKhoan:");
             e.printStackTrace();
-     }
+        }
         return false;
     }
 
+   
+    public boolean insert(String tenDangNhap, String matKhau, String vaiTro) {
 
-    /* ================= DS TÀI KHOẢN GIẢNG VIÊN ================= */
+        String sql = """
+            INSERT INTO TaiKhoan
+            (TenDangNhap, MatKhau, Salt, VaiTro, TrangThai, NgayTao)
+            VALUES (?, ?, ?, ?, N'Hoạt động', GETDATE())
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, tenDangNhap.trim());
+            ps.setString(2, matKhau.trim());
+            ps.setString(3, "s1");
+            ps.setString(4, vaiTro);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi insert TaiKhoan:");
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+  
+    public boolean resetPassword(String tenDangNhap, String matKhauMoi) {
+
+        String sql = """
+            UPDATE TaiKhoan
+            SET MatKhau = ?
+            WHERE TenDangNhap = ?
+              AND TrangThai = N'Hoạt động'
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, matKhauMoi.trim());
+            ps.setString(2, tenDangNhap.trim());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi resetPassword:");
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+   
     public List<String> getAllTenDangNhapGV() {
 
         List<String> list = new ArrayList<>();
@@ -90,6 +131,33 @@ public class TaiKhoanDB {
 
         } catch (SQLException e) {
             System.err.println("Lỗi getAllTenDangNhapGV:");
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+   
+    public List<String> getAllTenDangNhapSV() {
+
+        List<String> list = new ArrayList<>();
+
+        String sql = """
+            SELECT TenDangNhap
+            FROM TaiKhoan
+            WHERE VaiTro = 'SINHVIEN'
+              AND TrangThai = N'Hoạt động'
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString("TenDangNhap"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi getAllTenDangNhapSV:");
             e.printStackTrace();
         }
         return list;

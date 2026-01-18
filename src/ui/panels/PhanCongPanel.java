@@ -14,8 +14,8 @@ import java.util.List;
 
 public class PhanCongPanel extends JPanel {
 
-    private final JTable table;
-    private final DefaultTableModel tableModel;
+    private JTable table;
+    private DefaultTableModel tableModel;
 
     private JComboBox<String> cboGiangVien;
     private JComboBox<String> cboMonHoc;
@@ -90,6 +90,9 @@ public class PhanCongPanel extends JPanel {
         btnDelete = new JButton("Xóa");
         btnClear = new JButton("Làm mới");
 
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
+
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
@@ -144,11 +147,16 @@ public class PhanCongPanel extends JPanel {
 
     // ================= ADD =================
     private void addPhanCong() {
+        String namHoc = txtNamHoc.getText().trim();
+        if (!namHoc.matches("\\d{4}-\\d{4}")) {
+            JOptionPane.showMessageDialog(this, "Năm học phải có dạng yyyy-yyyy");
+            return;
+        }
+
         String maGV = cboGiangVien.getSelectedItem().toString().split(" - ")[0];
         String maMon = cboMonHoc.getSelectedItem().toString().split(" - ")[0];
         String maLop = cboLop.getSelectedItem().toString();
         int hocKy = (int) cboHocKy.getSelectedItem();
-        String namHoc = txtNamHoc.getText().trim();
 
         if (phanCongDB.insert(maGV, maMon, maLop, hocKy, namHoc)) {
             JOptionPane.showMessageDialog(this, "Thêm phân công thành công!");
@@ -160,18 +168,20 @@ public class PhanCongPanel extends JPanel {
     // ================= UPDATE =================
     private void updatePhanCong() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn phân công cần sửa!");
-            return;
-        }
+        if (row < 0) return;
 
         int maPC = (int) table.getValueAt(row, 0);
+
+        String namHoc = txtNamHoc.getText().trim();
+        if (!namHoc.matches("\\d{4}-\\d{4}")) {
+            JOptionPane.showMessageDialog(this, "Năm học phải có dạng yyyy-yyyy");
+            return;
+        }
 
         String maGV = cboGiangVien.getSelectedItem().toString().split(" - ")[0];
         String maMon = cboMonHoc.getSelectedItem().toString().split(" - ")[0];
         String maLop = cboLop.getSelectedItem().toString();
         int hocKy = (int) cboHocKy.getSelectedItem();
-        String namHoc = txtNamHoc.getText().trim();
 
         if (phanCongDB.update(maPC, maGV, maMon, maLop, hocKy, namHoc)) {
             JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
@@ -183,10 +193,7 @@ public class PhanCongPanel extends JPanel {
     // ================= DELETE =================
     private void deletePhanCong() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn phân công cần xóa!");
-            return;
-        }
+        if (row < 0) return;
 
         int maPC = (int) table.getValueAt(row, 0);
 
@@ -195,7 +202,7 @@ public class PhanCongPanel extends JPanel {
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
             if (phanCongDB.softDelete(maPC)) {
-                JOptionPane.showMessageDialog(this, "Đã xóa!");
+                JOptionPane.showMessageDialog(this, "Xóa thành công!");
                 loadData();
                 clearForm();
             }
@@ -207,11 +214,14 @@ public class PhanCongPanel extends JPanel {
         int row = table.getSelectedRow();
         if (row < 0) return;
 
-        String tenGV = table.getValueAt(row, 1).toString();
-        String tenMon = table.getValueAt(row, 2).toString();
-        String lop = table.getValueAt(row, 3).toString();
-        int hocKy = (int) table.getValueAt(row, 4);
-        String namHoc = table.getValueAt(row, 5).toString();
+        btnUpdate.setEnabled(true);
+        btnDelete.setEnabled(true);
+
+        String tenGV = getCellValue(row, 1);
+        String tenMon = getCellValue(row, 2);
+        String lop = getCellValue(row, 3);
+        int hocKy = Integer.parseInt(getCellValue(row, 4));
+        String namHoc = getCellValue(row, 5);
 
         for (int i = 0; i < cboGiangVien.getItemCount(); i++)
             if (cboGiangVien.getItemAt(i).contains(tenGV))
@@ -226,6 +236,11 @@ public class PhanCongPanel extends JPanel {
         txtNamHoc.setText(namHoc);
     }
 
+    private String getCellValue(int row, int col) {
+        Object val = table.getValueAt(row, col);
+        return val == null ? "" : val.toString();
+    }
+
     private void clearForm() {
         cboGiangVien.setSelectedIndex(0);
         cboMonHoc.setSelectedIndex(0);
@@ -233,6 +248,8 @@ public class PhanCongPanel extends JPanel {
         cboHocKy.setSelectedIndex(0);
         txtNamHoc.setText("2024-2025");
         table.clearSelection();
+        btnUpdate.setEnabled(false);
+        btnDelete.setEnabled(false);
     }
 
     // ================= LOAD COMBO =================
@@ -245,6 +262,7 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboGiangVien.addItem(rs.getString("MaGV") + " - " + rs.getString("HoTen"));
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -257,6 +275,7 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboMonHoc.addItem(rs.getString("MaMon") + " - " + rs.getString("TenMon"));
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -269,6 +288,7 @@ public class PhanCongPanel extends JPanel {
             while (rs.next())
                 cboLop.addItem(rs.getString("MaLop"));
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -6,10 +6,13 @@ import ui.panels.LopPanel;
 import ui.panels.MonHocPanel;
 import ui.panels.GiangVienPanel;
 import ui.panels.PhanCongPanel;
+import ui.panels.QuanLyDiemPanel;
 import ui.panels.ThoiKhoaBieuPanel;
+import ui.panels.ThongKePanel;
 
 import javax.swing.*;
 import java.awt.*;
+import ui.panels.SinhVienPanel;
 
 public class MainFrame extends JFrame {
 
@@ -69,11 +72,14 @@ public class MainFrame extends JFrame {
     sidebar.add(btnLogout);
 
     btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
+    btnSinhVien.addActionListener(e -> cardLayout.show(contentPanel, "sinhvien"));
     btnLop.addActionListener(e -> cardLayout.show(contentPanel, "lop"));
     btnMonHoc.addActionListener(e -> cardLayout.show(contentPanel, "monhoc"));
     btnGiangVien.addActionListener(e -> cardLayout.show(contentPanel, "giangvien"));
     btnPhanCong.addActionListener(e -> cardLayout.show(contentPanel, "phancong"));
+    btnDiem.addActionListener(e -> cardLayout.show(contentPanel, "diem"));
     btnTKB.addActionListener(e -> cardLayout.show(contentPanel, "tkb"));
+    btnThongKe.addActionListener(e -> cardLayout.show(contentPanel, "thongke"));
 
     btnLogout.addActionListener(e -> {
         int c = JOptionPane.showConfirmDialog(
@@ -174,11 +180,14 @@ private void initContent() {
 
    
     contentPanel.add(new DashboardPanel(), "dashboard");
+    contentPanel.add(new SinhVienPanel(), "sinhvien");
     contentPanel.add(new LopPanel(), "lop");
     contentPanel.add(new MonHocPanel(), "monhoc");
     contentPanel.add(new GiangVienPanel(), "giangvien");
     contentPanel.add(new PhanCongPanel(), "phancong");
+    contentPanel.add(new QuanLyDiemPanel(), "diem");
     contentPanel.add(new ThoiKhoaBieuPanel(), "tkb");
+    contentPanel.add(new ThongKePanel(), "thongke");
 
 
     cardLayout.show(contentPanel, "dashboard");

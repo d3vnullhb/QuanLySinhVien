@@ -11,30 +11,22 @@ import java.util.Vector;
 
 public class StudentMainFrame extends JFrame {
 
-    private JPanel sidebar;
-    private JPanel topPanel;
-    private JPanel contentPanel;
+    private JPanel sidebar, topPanel, contentPanel;
     private CardLayout cardLayout;
 
     private final Color SIDEBAR_COLOR = new Color(108, 92, 231);
     private final Color SIDEBAR_HOVER = new Color(84, 76, 200);
 
-    // Thông tin sinh viên hiện tại
-    private String currentMaSV;
-    private String currentMaLop;
-    private String currentHoTen;
+    private String currentMaSV, currentMaLop, currentHoTen;
 
-    // ===== CONTENT COMPONENTS =====
-    private JTable tblTKB;
-    private DefaultTableModel modelTKB;
-    private JTable tblScore;
-    private DefaultTableModel modelScore;
+    private JTable tblTKB, tblScore;
+    private DefaultTableModel modelTKB, modelScore;
     private JPanel profilePanel;
 
     public StudentMainFrame() {
         loadStudentInfo();
 
-        setTitle("Cổng thông tin Sinh viên - " + (currentHoTen != null ? currentHoTen : ""));
+        setTitle("Cổng thông tin Sinh viên - " + currentHoTen);
         setSize(1100, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -49,60 +41,48 @@ public class StudentMainFrame extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
     }
 
-    // ================= LOAD INFO =================
+    /* ================= LOAD INFO ================= */
     private void loadStudentInfo() {
         StudentDB dao = new StudentDB();
         String[] info = dao.getThongTinSinhVien();
-        if (info != null && info[0] != null) {
+        if (info != null) {
             currentMaSV = info[0];
             currentMaLop = info[1];
             currentHoTen = info[2];
-        } else {
-            JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin sinh viên!");
         }
     }
 
-    // ================= SIDEBAR (FIX Ở ĐÂY) =================
+    /* ================= SIDEBAR ================= */
     private void initSidebar() {
-        sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        sidebar = new JPanel(new BorderLayout());
         sidebar.setPreferredSize(new Dimension(220, 0));
         sidebar.setBackground(SIDEBAR_COLOR);
 
-        // ===== MENU =====
-        JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
-        menuPanel.setBackground(SIDEBAR_COLOR);
+        JPanel menu = new JPanel();
+        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
+        menu.setBackground(SIDEBAR_COLOR);
 
         JButton btnHome = createMenuButton("Trang chủ", "home.png");
         JButton btnInfo = createMenuButton("Thông tin cá nhân", "student.png");
         JButton btnTKB = createMenuButton("Thời khóa biểu", "timetable.png");
-        JButton btnDiem = createMenuButton("Kết quả học tập", "score.png");
+        JButton btnScore = createMenuButton("Kết quả học tập", "score.png");
 
-        menuPanel.add(btnHome);
-        menuPanel.add(btnInfo);
-        menuPanel.add(btnTKB);
-        menuPanel.add(btnDiem);
+        menu.add(btnHome);
+        menu.add(btnInfo);
+        menu.add(btnTKB);
+        menu.add(btnScore);
 
-        // ===== LOGOUT =====
         JButton btnLogout = createMenuButton("Đăng xuất", "logout.png");
 
-        // ===== GHÉP VÀO SIDEBAR =====
-        sidebar.add(Box.createVerticalStrut(20)); // padding top
-        sidebar.add(menuPanel);
-        sidebar.add(btnLogout);
-        sidebar.add(Box.createVerticalStrut(15)); // padding bottom
+        sidebar.add(menu, BorderLayout.CENTER);
+        sidebar.add(btnLogout, BorderLayout.SOUTH);
 
-        // ===== EVENTS =====
         btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
 
         btnInfo.addActionListener(e -> {
-            contentPanel.remove(profilePanel);
             profilePanel = createProfilePanel();
             contentPanel.add(profilePanel, "info");
             cardLayout.show(contentPanel, "info");
-            contentPanel.revalidate();
-            contentPanel.repaint();
         });
 
         btnTKB.addActionListener(e -> {
@@ -110,139 +90,100 @@ public class StudentMainFrame extends JFrame {
             refreshTKB();
         });
 
-        btnDiem.addActionListener(e -> {
+        btnScore.addActionListener(e -> {
             cardLayout.show(contentPanel, "score");
             refreshScore();
         });
 
-        btnLogout.addActionListener(e -> {
-            int c = JOptionPane.showConfirmDialog(
+       btnLogout.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
                     this,
-                    "Đăng xuất thiệt hả ní?",
-                    "Xác nhận",
-                    JOptionPane.YES_NO_OPTION
+                    "Bạn có chắc chắn muốn đăng xuất không?",
+                    "Xác nhận đăng xuất",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
             );
-            if (c == JOptionPane.YES_OPTION) {
+
+            if (choice == JOptionPane.YES_OPTION) {
                 Session.logout();
                 new LoginFrame().setVisible(true);
                 dispose();
             }
         });
+
     }
 
-    // ================= TOP PANEL =================
+    /* ================= TOP ================= */
     private void initTopPanel() {
         topPanel = new JPanel(new BorderLayout());
-        topPanel.setPreferredSize(new Dimension(0, 60));
+        topPanel.setPreferredSize(new Dimension(0, 55));
         topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        topPanel.setBorder(BorderFactory.createMatteBorder(0,0,1,0,Color.LIGHT_GRAY));
 
-        JLabel lblWelcome = new JLabel("Xin chào: " + (currentHoTen != null ? currentHoTen : ""));
-        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblWelcome.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+        JLabel lblWelcome = new JLabel("Xin chào: " + currentHoTen);
+        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        lblWelcome.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
         topPanel.add(lblWelcome, BorderLayout.WEST);
     }
 
-    // ================= CONTENT =================
+    /* ================= CONTENT ================= */
     private void initContent() {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Dashboard
         contentPanel.add(new DashboardPanel(), "dashboard");
 
-        // Profile
         profilePanel = createProfilePanel();
         contentPanel.add(profilePanel, "info");
 
-        // TKB
-        JPanel pnlTKB = new JPanel(new BorderLayout());
-        JLabel lblTitleTKB = new JLabel("THỜI KHÓA BIỂU - LỚP: " + currentMaLop, SwingConstants.CENTER);
-        lblTitleTKB.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitleTKB.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-        String[] colsTKB = {"Môn học", "Giảng viên", "Thứ", "Tiết BĐ", "Phòng"};
-        modelTKB = new DefaultTableModel(colsTKB, 0);
-        tblTKB = new JTable(modelTKB);
-        tblTKB.setRowHeight(25);
-
-        pnlTKB.add(lblTitleTKB, BorderLayout.NORTH);
+        // ===== TKB =====
+        JPanel pnlTKB = createCardPanel("THỜI KHÓA BIỂU - LỚP " + currentMaLop);
+        modelTKB = new DefaultTableModel(
+                new String[]{"Môn", "GV", "Ngày", "Thứ", "Tiết", "Phòng"}, 0
+        );
+        tblTKB = createTable(modelTKB);
         pnlTKB.add(new JScrollPane(tblTKB), BorderLayout.CENTER);
         contentPanel.add(pnlTKB, "tkb");
 
-        // Score
-        JPanel pnlScore = new JPanel(new BorderLayout());
-        JLabel lblTitleScore = new JLabel("KẾT QUẢ HỌC TẬP", SwingConstants.CENTER);
-        lblTitleScore.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitleScore.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-        String[] colsScore = {"Môn học", "TC", "CC", "GK", "CK", "Tổng", "Chữ", "KQ"};
-        modelScore = new DefaultTableModel(colsScore, 0);
-        tblScore = new JTable(modelScore);
-        tblScore.setRowHeight(25);
-
-        pnlScore.add(lblTitleScore, BorderLayout.NORTH);
+        // ===== SCORE =====
+        JPanel pnlScore = createCardPanel("KẾT QUẢ HỌC TẬP");
+        modelScore = new DefaultTableModel(
+                new String[]{"Môn", "TC", "CC", "GK", "CK", "Tổng", "Chữ", "KQ"}, 0
+        );
+        tblScore = createTable(modelScore);
         pnlScore.add(new JScrollPane(tblScore), BorderLayout.CENTER);
         contentPanel.add(pnlScore, "score");
     }
 
-    // ================= PROFILE =================
+    /* ================= PROFILE ================= */
     private JPanel createProfilePanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(Color.WHITE);
+        JPanel card = createCardPanel("HỒ SƠ SINH VIÊN");
 
         StudentDB dao = new StudentDB();
         String[] info = dao.getStudentProfile(currentMaSV);
-        if (info == null || info[0] == null) {
-            info = new String[]{"...", "...", "...", "...", "...", "...", "...", "..."};
+        if (info == null) info = new String[]{"","","","","","","",""};
+
+        JPanel grid = new JPanel(new GridLayout(0, 2, 15, 12));
+        grid.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
+        grid.setBackground(Color.WHITE);
+
+        String[] labels = {
+                "Mã SV", "Họ tên", "Ngày sinh", "Giới tính",
+                "SĐT", "Địa chỉ", "Lớp", "Trạng thái"
+        };
+
+        for (int i = 0; i < labels.length; i++) {
+            grid.add(new JLabel(labels[i] + ":"));
+            grid.add(new JLabel(info[i]));
         }
 
-        JLabel lblTitle = new JLabel("HỒ SƠ SINH VIÊN", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitle.setForeground(SIDEBAR_COLOR);
-        lblTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
-        mainPanel.add(lblTitle, BorderLayout.NORTH);
-
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(12, 25, 12, 25);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        addProfileRow(formPanel, gbc, 0, "Mã sinh viên:", info[0]);
-        addProfileRow(formPanel, gbc, 1, "Họ và tên:", info[1]);
-        addProfileRow(formPanel, gbc, 2, "Lớp:", info[6]);
-        addProfileRow(formPanel, gbc, 3, "Ngày sinh:", info[2]);
-        addProfileRow(formPanel, gbc, 4, "Giới tính:", info[3]);
-        addProfileRow(formPanel, gbc, 5, "SĐT:", info[4]);
-        addProfileRow(formPanel, gbc, 6, "Địa chỉ:", info[5]);
-        addProfileRow(formPanel, gbc, 7, "Trạng thái:", info[7]);
-
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setBackground(Color.WHITE);
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.NORTH;
-        c.insets = new Insets(10, 0, 0, 0);
-        center.add(formPanel, c);
-
-        mainPanel.add(center, BorderLayout.CENTER);
-        return mainPanel;
+        card.add(grid, BorderLayout.CENTER);
+        return card;
     }
 
-    private void addProfileRow(JPanel p, GridBagConstraints gbc, int row, String label, String value) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        p.add(new JLabel(label), gbc);
-
-        gbc.gridx = 1;
-        p.add(new JLabel(value), gbc);
-    }
-
-    // ================= DATA =================
+    /* ================= DATA ================= */
     private void refreshTKB() {
-        if (currentMaLop == null) return;
         modelTKB.setRowCount(0);
         StudentDB dao = new StudentDB();
         Vector<Vector<String>> data = dao.getTKB(currentMaLop);
@@ -250,18 +191,42 @@ public class StudentMainFrame extends JFrame {
     }
 
     private void refreshScore() {
-        if (currentMaSV == null) return;
         modelScore.setRowCount(0);
         StudentDB dao = new StudentDB();
         Vector<Vector<String>> data = dao.getDiem(currentMaSV);
         for (Vector<String> row : data) modelScore.addRow(row);
     }
 
-    // ================= BUTTON =================
+    /* ================= UI HELPERS ================= */
+    private JPanel createCardPanel(String title) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(230,230,230)));
+
+        JLabel lbl = new JLabel(title, SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lbl.setBorder(BorderFactory.createEmptyBorder(15,0,15,0));
+        panel.add(lbl, BorderLayout.NORTH);
+        return panel;
+    }
+
+    private JTable createTable(DefaultTableModel model) {
+        JTable t = new JTable(model);
+        t.setRowHeight(26);
+        t.setDefaultEditor(Object.class, null);
+        t.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        return t;
+    }
+
     private JButton createMenuButton(String text, String iconName) {
         JButton btn = new JButton(text);
+
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/" + iconName));
+        Image img = icon.getImage().getScaledInstance(22,22,Image.SCALE_SMOOTH);
+        btn.setIcon(new ImageIcon(img));
+
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setIconTextGap(15);
+        btn.setIconTextGap(12);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
@@ -269,15 +234,11 @@ public class StudentMainFrame extends JFrame {
         btn.setBackground(SIDEBAR_COLOR);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setBorder(BorderFactory.createEmptyBorder(12, 30, 12, 10));
+        btn.setBorder(BorderFactory.createEmptyBorder(12,25,12,10));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(SIDEBAR_HOVER);
-            }
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(SIDEBAR_COLOR);
-            }
+            public void mouseEntered(java.awt.event.MouseEvent e) { btn.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(java.awt.event.MouseEvent e) { btn.setBackground(SIDEBAR_COLOR); }
         });
         return btn;
     }

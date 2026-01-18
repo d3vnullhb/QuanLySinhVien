@@ -41,29 +41,54 @@ public class StudentDB {
     }
 
     // 2. Lấy Thời khóa biểu (Dựa theo MaLop của SV đó)
-    public Vector<Vector<String>> getTKB(String maLop) {
-        Vector<Vector<String>> data = new Vector<>();
-        try (Connection conn = getConnection()) {
-            String sql = "SELECT m.TenMon, g.HoTen, t.Thu, t.TietBatDau, t.SoTiet, t.Phong " +
-                         "FROM ThoiKhoaBieu t " +
-                         "JOIN MonHoc m ON t.MaMon = m.MaMon " +
-                         "JOIN GiangVien g ON t.MaGV = g.MaGV " +
-                         "WHERE t.MaLop = ?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, maLop);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Vector<String> row = new Vector<>();
-                row.add(rs.getString("TenMon"));
-                row.add(rs.getString("HoTen"));
-                row.add("Thứ " + rs.getInt("Thu"));
-                row.add(rs.getInt("TietBatDau") + ""); // Tiết
-                row.add(rs.getString("Phong"));
-                data.add(row);
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return data;
-    }
+            public Vector<Vector<String>> getTKB(String maLop) {
+              Vector<Vector<String>> data = new Vector<>();
+              try (Connection conn = getConnection()) {
+
+                  String sql = """
+                      SELECT m.TenMon, g.HoTen, t.NgayHoc, t.Thu, 
+                             t.TietBatDau, t.SoTiet, t.Phong
+                      FROM ThoiKhoaBieu t
+                      JOIN MonHoc m ON t.MaMon = m.MaMon
+                      JOIN GiangVien g ON t.MaGV = g.MaGV
+                      WHERE t.MaLop = ?
+                      ORDER BY t.NgayHoc, t.TietBatDau
+                  """;
+
+                  PreparedStatement ps = conn.prepareStatement(sql);
+                  ps.setString(1, maLop);
+                  ResultSet rs = ps.executeQuery();
+
+                  while (rs.next()) {
+                      Vector<String> row = new Vector<>();
+
+                      row.add(rs.getString("TenMon"));
+                      row.add(rs.getString("HoTen"));
+
+                      // ===== NGÀY HỌC =====
+                      Date ngayHoc = rs.getDate("NgayHoc");
+                      row.add(ngayHoc != null 
+                              ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(ngayHoc)
+                              : "");
+
+                      // ===== THỨ =====
+                      row.add("Thứ " + rs.getInt("Thu"));
+
+                      // ===== TIẾT =====
+                      row.add(rs.getInt("TietBatDau") + "");
+
+                      // ===== PHÒNG =====
+                      row.add(rs.getString("Phong"));
+
+                      data.add(row);
+                  }
+
+              } catch (Exception e) {
+                  e.printStackTrace();
+              }
+              return data;
+          }
+
 
     // 3. Lấy Điểm (Dựa theo MaSV)
     public Vector<Vector<String>> getDiem(String maSV) {

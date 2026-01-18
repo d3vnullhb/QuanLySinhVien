@@ -19,6 +19,19 @@
             <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/model/ThoiKhoaBieu.java</file>
             <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/ThoiKhoaBieuDB.java</file>
             <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/panels/ThoiKhoaBieuPanel.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/StudentMainFrame.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/StudentDB.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/TeacherMainFrame.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/dialogs/CreateTaiKhoanDialog.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/TaiKhoanDB.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/panels/SinhVienPanel.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/SinhVienDB.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/model/SinhVien.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/panels/QuanLyDiemPanel.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/DiemDB.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/model/Diem.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/dao/ThongKeDB.java</file>
+            <file>file:/C:/Users/AD/Documents/NetBeansProjects/QuanLySinhVien/src/ui/panels/ThongKePanel.java</file>
         </group>
     </open-files>
 </project-private>

@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.List;
+import java.text.SimpleDateFormat;
+
 
 public class ThoiKhoaBieuPanel extends JPanel {
 
@@ -26,7 +28,7 @@ public class ThoiKhoaBieuPanel extends JPanel {
         add(title, BorderLayout.NORTH);
 
         model = new DefaultTableModel(
-           new Object[]{"STT","ID","Lớp","Môn","GV","Thứ","Tiết BD","Số tiết","Phòng","HK","Năm học"},0
+        new Object[]{"STT","ID","Lớp","Môn","GV","Ngày","Thứ","Tiết BD","Số tiết","Phòng","HK","Năm học"},0
         );
         table = new JTable(model);
         table.setRowHeight(26);
@@ -51,6 +53,7 @@ public class ThoiKhoaBieuPanel extends JPanel {
 
     private void loadData() {
         model.setRowCount(0);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         List<ThoiKhoaBieu> list = db.getAllActive();
         int stt = 1;
         for (ThoiKhoaBieu t : list) {
@@ -60,6 +63,7 @@ public class ThoiKhoaBieuPanel extends JPanel {
                 t.getMaLop(),
                 t.getTenMon(),
                 t.getTenGV(),
+                sdf.format(t.getNgayHoc()),   
                 t.getThu(),
                 t.getTietBatDau(),
                 t.getSoTiet(),
@@ -78,34 +82,43 @@ public class ThoiKhoaBieuPanel extends JPanel {
     }
 
     private void importCSV() {
-        JFileChooser fc = new JFileChooser();
-        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+    JFileChooser fc = new JFileChooser();
+    if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
-        File file = fc.getSelectedFile();
+    File file = fc.getSelectedFile();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean skip = true;
+    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        String line;
+        boolean skip = true;
 
-            while ((line = br.readLine()) != null) {
-                if (skip) { skip = false; continue; }
-                String[] a = line.split(",");
+        while ((line = br.readLine()) != null) {
+            if (skip) { skip = false; continue; }
+            String[] a = line.split(",");
 
-                db.insert(
-                    a[0], a[1], a[2],
-                    Integer.parseInt(a[3]),
-                    Integer.parseInt(a[4]),
-                    Integer.parseInt(a[5]),
-                    a[6],
-                    Integer.parseInt(a[7]),
-                    a[8]
-                );
-            }
-            JOptionPane.showMessageDialog(this, "Import CSV thành công!");
-            loadData();
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            db.insert(
+                a[0],                         
+                a[1],                        
+                a[2],                         
+                java.sql.Date.valueOf(a[3]),  
+                Integer.parseInt(a[4]),       
+                Integer.parseInt(a[5]),      
+                Integer.parseInt(a[6]),       
+                a[7],                         
+                Integer.parseInt(a[8]),      
+                a[9]                         
+            );
         }
+
+        JOptionPane.showMessageDialog(this, "Import CSV thành công!");
+        loadData();
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Import thất bại:\n" + ex.getMessage(),
+            "Lỗi",
+            JOptionPane.ERROR_MESSAGE
+        );
     }
+}
 }

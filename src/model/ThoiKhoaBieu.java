@@ -1,10 +1,13 @@
 package model;
 
+import java.util.Date;
+
 public class ThoiKhoaBieu {
     private int maTKB;
     private String maLop;
     private String tenMon;
     private String tenGV;
+    private Date ngayHoc;
     private int thu;
     private int tietBatDau;
     private int soTiet;
@@ -23,6 +26,10 @@ public class ThoiKhoaBieu {
 
     public String getTenGV() { return tenGV; }
     public void setTenGV(String tenGV) { this.tenGV = tenGV; }
+    
+    public Date getNgayHoc() { return ngayHoc; }
+    public void setNgayHoc(Date ngayHoc) { this.ngayHoc = ngayHoc; }
+
 
     public int getThu() { return thu; }
     public void setThu(int thu) { this.thu = thu; }

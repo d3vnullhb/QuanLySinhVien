@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
-
 public class PhanCongDB {
 
     public List<PhanCong> getAllActive() {
@@ -46,11 +45,50 @@ public class PhanCongDB {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return list;
     }
 
+    private boolean existsSameClassSubject(String maMon, String maLop, int hocKy, String namHoc) {
+        String sql = """
+            SELECT COUNT(*)
+            FROM PhanCong
+            WHERE MaMon = ?
+              AND MaLop = ?
+              AND HocKy = ?
+              AND NamHoc = ?
+              AND TrangThai = 1
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maMon);
+            ps.setString(2, maLop);
+            ps.setInt(3, hocKy);
+            ps.setString(4, namHoc);
+
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1) > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean insert(String maGV, String maMon, String maLop, int hocKy, String namHoc) {
+
+        if (existsSameClassSubject(maMon, maLop, hocKy, namHoc)) {
+            JOptionPane.showMessageDialog(null,
+                    "Lớp này đã có giảng viên dạy môn này!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
         String sql = """
             INSERT INTO PhanCong (MaGV, MaMon, MaLop, HocKy, NamHoc)
             VALUES (?, ?, ?, ?, ?)
@@ -64,31 +102,73 @@ public class PhanCongDB {
             ps.setString(3, maLop);
             ps.setInt(4, hocKy);
             ps.setString(5, namHoc);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
-                    "Phân công này đã tồn tại!",
+                    "Không thể thêm phân công!",
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        return false;
-    }
-
-    public boolean softDelete(int maPC) {
-        String sql = "UPDATE PhanCong SET TrangThai = 0 WHERE MaPC = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, maPC);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
     public boolean update(int maPC, String maGV, String maMon, String maLop, int hocKy, String namHoc) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+
+        if (existsSameClassSubject(maMon, maLop, hocKy, namHoc)) {
+            JOptionPane.showMessageDialog(null,
+                    "Lớp này đã có giảng viên dạy môn này!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        String sql = """
+            UPDATE PhanCong
+            SET MaGV = ?,
+                MaMon = ?,
+                MaLop = ?,
+                HocKy = ?,
+                NamHoc = ?
+            WHERE MaPC = ? AND TrangThai = 1
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maGV);
+            ps.setString(2, maMon);
+            ps.setString(3, maLop);
+            ps.setInt(4, hocKy);
+            ps.setString(5, namHoc);
+            ps.setInt(6, maPC);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Không thể cập nhật phân công!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean softDelete(int maPC) {
+        String sql = "UPDATE PhanCong SET TrangThai = 0 WHERE MaPC = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, maPC);
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
