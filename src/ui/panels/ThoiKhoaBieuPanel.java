@@ -73,13 +73,22 @@ public class ThoiKhoaBieuPanel extends JPanel {
     });
     }
 }
+        private void deleteTKB() {
+            int row = table.getSelectedRow();
+            if (row < 0) return;
 
-    private void deleteTKB() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
-        int id = (int) table.getValueAt(row, 1);       
-        if (db.softDelete(id)) loadData();
-    }
+            if (JOptionPane.showConfirmDialog(
+                    this, "Xóa thời khóa biểu?",
+                    "Xác nhận", JOptionPane.YES_NO_OPTION
+            ) != JOptionPane.YES_OPTION) return;
+
+            int id = Integer.parseInt(table.getValueAt(row, 1).toString());
+
+            if (db.delete(id)) {
+                loadData();
+            }
+        }
+
 
     private void importCSV() {
     JFileChooser fc = new JFileChooser();

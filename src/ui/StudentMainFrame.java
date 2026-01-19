@@ -78,12 +78,7 @@ public class StudentMainFrame extends JFrame {
         sidebar.add(btnLogout, BorderLayout.SOUTH);
 
         btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
-
-        btnInfo.addActionListener(e -> {
-            profilePanel = createProfilePanel();
-            contentPanel.add(profilePanel, "info");
-            cardLayout.show(contentPanel, "info");
-        });
+        btnInfo.addActionListener(e -> cardLayout.show(contentPanel, "info"));
 
         btnTKB.addActionListener(e -> {
             cardLayout.show(contentPanel, "tkb");
@@ -95,22 +90,18 @@ public class StudentMainFrame extends JFrame {
             refreshScore();
         });
 
-       btnLogout.addActionListener(e -> {
-            int choice = JOptionPane.showConfirmDialog(
+        btnLogout.addActionListener(e -> {
+            if (JOptionPane.showConfirmDialog(
                     this,
                     "Bạn có chắc chắn muốn đăng xuất không?",
-                    "Xác nhận đăng xuất",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE
-            );
-
-            if (choice == JOptionPane.YES_OPTION) {
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION
+            ) == JOptionPane.YES_OPTION) {
                 Session.logout();
                 new LoginFrame().setVisible(true);
                 dispose();
             }
         });
-
     }
 
     /* ================= TOP ================= */
@@ -137,67 +128,97 @@ public class StudentMainFrame extends JFrame {
         profilePanel = createProfilePanel();
         contentPanel.add(profilePanel, "info");
 
-        // ===== TKB =====
+        // TKB
         JPanel pnlTKB = createCardPanel("THỜI KHÓA BIỂU - LỚP " + currentMaLop);
-        modelTKB = new DefaultTableModel(
-                new String[]{"Môn", "GV", "Ngày", "Thứ", "Tiết", "Phòng"}, 0
-        );
+        modelTKB = new DefaultTableModel(new String[]{"Môn", "GV", "Ngày", "Thứ", "Tiết", "Phòng"}, 0);
         tblTKB = createTable(modelTKB);
         pnlTKB.add(new JScrollPane(tblTKB), BorderLayout.CENTER);
         contentPanel.add(pnlTKB, "tkb");
 
-        // ===== SCORE =====
+        // SCORE
         JPanel pnlScore = createCardPanel("KẾT QUẢ HỌC TẬP");
-        modelScore = new DefaultTableModel(
-                new String[]{"Môn", "TC", "CC", "GK", "CK", "Tổng", "Chữ", "KQ"}, 0
-        );
+        modelScore = new DefaultTableModel(new String[]{"Môn","TC","CC","GK","CK","Tổng","Chữ","KQ"}, 0);
         tblScore = createTable(modelScore);
         pnlScore.add(new JScrollPane(tblScore), BorderLayout.CENTER);
         contentPanel.add(pnlScore, "score");
     }
 
     /* ================= PROFILE ================= */
-    private JPanel createProfilePanel() {
-        JPanel card = createCardPanel("HỒ SƠ SINH VIÊN");
+        private JPanel createProfilePanel() {
+         JPanel wrapper = new JPanel(new GridBagLayout());
+         wrapper.setBackground(Color.WHITE);
 
-        StudentDB dao = new StudentDB();
-        String[] info = dao.getStudentProfile(currentMaSV);
-        if (info == null) info = new String[]{"","","","","","","",""};
+         // ===== CARD =====
+         JPanel card = new JPanel(new BorderLayout(20, 20));
+         card.setPreferredSize(new Dimension(520, 260));
+         card.setBackground(new Color(245, 245, 245));
+         card.setBorder(BorderFactory.createCompoundBorder(
+                 BorderFactory.createLineBorder(new Color(220,220,220)),
+                 BorderFactory.createEmptyBorder(25, 30, 25, 30)
+         ));
 
-        JPanel grid = new JPanel(new GridLayout(0, 2, 15, 12));
-        grid.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
-        grid.setBackground(Color.WHITE);
+         StudentDB dao = new StudentDB();
+         String[] info = dao.getStudentProfile(currentMaSV);
+         if (info == null) info = new String[]{"","","","","","","",""};
 
-        String[] labels = {
-                "Mã SV", "Họ tên", "Ngày sinh", "Giới tính",
-                "SĐT", "Địa chỉ", "Lớp", "Trạng thái"
-        };
+         // ===== ICON =====
+         ImageIcon icon = new ImageIcon(
+                 new ImageIcon(getClass().getResource("/images/profilestudent.png"))
+                         .getImage().getScaledInstance(110, 110, Image.SCALE_SMOOTH)
+         );
+         JLabel lblImg = new JLabel(icon);
 
-        for (int i = 0; i < labels.length; i++) {
-            grid.add(new JLabel(labels[i] + ":"));
-            grid.add(new JLabel(info[i]));
-        }
+         // ===== INFO =====
+         JPanel infoPanel = new JPanel();
+         infoPanel.setOpaque(false);
+         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
 
-        card.add(grid, BorderLayout.CENTER);
-        return card;
-    }
+         JLabel lblName = new JLabel("Họ tên: " + info[1]);
+         lblName.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+         JLabel lblMa   = new JLabel("Mã SV: " + info[0]);
+         JLabel lblMail = new JLabel("Email: " + info[4]);
+         JLabel lblKhoa = new JLabel("Lớp: " + info[6]);
+         JLabel lblRole = new JLabel("Trạng thái: " + info[7]);
+
+         Font f = new Font("Segoe UI", Font.PLAIN, 13);
+         lblMa.setFont(f);
+         lblMail.setFont(f);
+         lblKhoa.setFont(f);
+         lblRole.setFont(f);
+
+         infoPanel.add(lblName);
+         infoPanel.add(Box.createVerticalStrut(10));
+         infoPanel.add(lblMa);
+         infoPanel.add(Box.createVerticalStrut(5));
+         infoPanel.add(lblMail);
+         infoPanel.add(Box.createVerticalStrut(5));
+         infoPanel.add(lblKhoa);
+         infoPanel.add(Box.createVerticalStrut(5));
+         infoPanel.add(lblRole);
+
+         card.add(lblImg, BorderLayout.WEST);
+         card.add(infoPanel, BorderLayout.CENTER);
+
+         wrapper.add(card);
+         return wrapper;
+     }
+
 
     /* ================= DATA ================= */
     private void refreshTKB() {
         modelTKB.setRowCount(0);
-        StudentDB dao = new StudentDB();
-        Vector<Vector<String>> data = dao.getTKB(currentMaLop);
-        for (Vector<String> row : data) modelTKB.addRow(row);
+        for (Vector<String> row : new StudentDB().getTKB(currentMaLop))
+            modelTKB.addRow(row);
     }
 
     private void refreshScore() {
         modelScore.setRowCount(0);
-        StudentDB dao = new StudentDB();
-        Vector<Vector<String>> data = dao.getDiem(currentMaSV);
-        for (Vector<String> row : data) modelScore.addRow(row);
+        for (Vector<String> row : new StudentDB().getDiem(currentMaSV))
+            modelScore.addRow(row);
     }
 
-    /* ================= UI HELPERS ================= */
+    /* ================= HELPERS ================= */
     private JPanel createCardPanel(String title) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);

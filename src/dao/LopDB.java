@@ -73,18 +73,20 @@ public class LopDB {
         }
     }
 
-    public boolean softDelete(String maLop) {
-        String sql = "UPDATE Lop SET TrangThai = 0 WHERE MaLop = ?";
+        public boolean Delete(String maLop) {
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+         String sql = "DELETE FROM Lop WHERE MaLop = ?";
 
-            ps.setString(1, maLop);
-            return ps.executeUpdate() > 0;
+         try (Connection con = DBConnection.getConnection();
+              PreparedStatement ps = con.prepareStatement(sql)) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+             ps.setString(1, maLop.trim());
+             return ps.executeUpdate() > 0;
+
+         } catch (Exception e) {
+             e.printStackTrace();
+         }
+         return false;
+     }
+
 }

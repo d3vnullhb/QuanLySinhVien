@@ -157,18 +157,20 @@ public class PhanCongDB {
         return false;
     }
 
-    public boolean softDelete(int maPC) {
-        String sql = "UPDATE PhanCong SET TrangThai = 0 WHERE MaPC = ?";
+        public boolean Delete(int maPC) {
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+         String sql = "DELETE FROM PhanCong WHERE MaPC = ?";
 
-            ps.setInt(1, maPC);
-            return ps.executeUpdate() > 0;
+         try (Connection con = DBConnection.getConnection();
+              PreparedStatement ps = con.prepareStatement(sql)) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+             ps.setInt(1, maPC);
+             return ps.executeUpdate() > 0;
+
+         } catch (Exception e) {
+             e.printStackTrace();
+         }
+         return false;
+     }
+
 }

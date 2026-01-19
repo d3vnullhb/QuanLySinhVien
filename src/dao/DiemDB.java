@@ -3,12 +3,15 @@ package dao;
 import model.Diem;
 import util.DBConnection;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DiemDB {
 
+    /* ================= LẤY DS ĐIỂM THEO LỚP – MÔN ================= */
     public List<Diem> getByLopMon(
             String maLop, String maMon, int hocKy, String namHoc) {
 
@@ -24,6 +27,8 @@ public class DiemDB {
               AND d.MaMon = ?
               AND d.HocKy = ?
               AND d.NamHoc = ?
+              AND d.LanThi = 1
+            ORDER BY sv.MaSV
         """;
 
         try (Connection con = DBConnection.getConnection();
@@ -54,6 +59,7 @@ public class DiemDB {
         return list;
     }
 
+    /* ================= CẬP NHẬT ĐIỂM ================= */
     public boolean updateDiem(Diem d) {
 
         String sql = """
@@ -82,5 +88,62 @@ public class DiemDB {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /* ================= LẤY DS NĂM HỌC ================= */
+    public List<String> getAllNamHoc() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT NamHoc FROM Diem ORDER BY NamHoc DESC";
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString(1));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /* ================= LẤY DS LỚP ================= */
+    public List<String> getAllLop() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT MaLop FROM Lop WHERE TrangThai = 1 ORDER BY MaLop";
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString("MaLop"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /* ================= LẤY DS MÔN ================= */
+    public List<String> getAllMon() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT MaMon, TenMon FROM MonHoc WHERE TrangThai = 1 ORDER BY TenMon";
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString("MaMon") + " - " + rs.getString("TenMon"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

@@ -64,18 +64,20 @@ public class MonHocDB {
         }
     }
 
-    public boolean softDelete(String maMon) {
-        String sql = "UPDATE MonHoc SET TrangThai = 0 WHERE MaMon = ?";
+        public boolean Delete(String maMon) {
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+         String sql = "DELETE FROM MonHoc WHERE MaMon = ?";
 
-            ps.setString(1, maMon);
-            return ps.executeUpdate() > 0;
+         try (Connection con = DBConnection.getConnection();
+              PreparedStatement ps = con.prepareStatement(sql)) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+             ps.setString(1, maMon.trim());
+             return ps.executeUpdate() > 0;
+
+         } catch (Exception e) {
+             e.printStackTrace();
+         }
+         return false;
+     }
+
 }

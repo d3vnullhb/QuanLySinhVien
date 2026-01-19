@@ -88,17 +88,19 @@ public class ThoiKhoaBieuDB {
              return false;
          }
 
-    public boolean softDelete(int maTKB) {
-        String sql = "UPDATE ThoiKhoaBieu SET TrangThai = 0 WHERE MaTKB = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        public boolean delete(int maTKB) {
+         String sql = "DELETE FROM ThoiKhoaBieu WHERE MaTKB = ?";
 
-            ps.setInt(1, maTKB);
-            return ps.executeUpdate() > 0;
+         try (Connection con = DBConnection.getConnection();
+              PreparedStatement ps = con.prepareStatement(sql)) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+             ps.setInt(1, maTKB);
+             return ps.executeUpdate() > 0;
+
+         } catch (Exception e) {
+             System.err.println("Lỗi delete ThoiKhoaBieu:");
+             e.printStackTrace();
+         }
+         return false;
+     }
 }

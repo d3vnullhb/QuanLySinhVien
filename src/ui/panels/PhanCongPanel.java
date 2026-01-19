@@ -201,7 +201,7 @@ public class PhanCongPanel extends JPanel {
                 this, "Xóa phân công này?", "Xác nhận",
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-            if (phanCongDB.softDelete(maPC)) {
+            if (phanCongDB.Delete(maPC)) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!");
                 loadData();
                 clearForm();

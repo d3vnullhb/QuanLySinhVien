@@ -198,7 +198,7 @@ public class LopPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             String maLop = txtMaLop.getText();
-            if (lopDB.softDelete(maLop)) {
+            if (lopDB.Delete(maLop)) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!");
                 clearForm();
                 loadData();

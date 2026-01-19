@@ -2,14 +2,10 @@ package ui.panels;
 
 import dao.DiemDB;
 import model.Diem;
-import util.DBConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.List;
 
 public class QuanLyDiemPanel extends JPanel {
@@ -38,10 +34,11 @@ public class QuanLyDiemPanel extends JPanel {
         cboLop = new JComboBox<>();
         cboMon = new JComboBox<>();
         cboHocKy = new JComboBox<>(new Integer[]{1, 2, 3});
-        cboNamHoc = new JComboBox<>(new String[]{"2023-2024", "2024-2025"});
+        cboNamHoc = new JComboBox<>();
 
         loadLop();
         loadMon();
+        loadNamHoc();
 
         gbc.gridx = 0; gbc.gridy = 0; filter.add(new JLabel("Lớp"), gbc);
         gbc.gridx = 1; filter.add(cboLop, gbc);
@@ -69,14 +66,14 @@ public class QuanLyDiemPanel extends JPanel {
                         "Tổng", "Điểm chữ", "Kết quả"
                 }, 0
         ) {
-            @Override
             public boolean isCellEditable(int row, int col) {
-                return col >= 2 && col <= 4; // chỉ cho sửa CC, GK, CK
+                return col >= 2 && col <= 4;
             }
         };
 
         table = new JTable(model);
         table.setRowHeight(26);
+        table.setDefaultEditor(Object.class, null);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         /* ================= BUTTON ================= */
@@ -136,43 +133,28 @@ public class QuanLyDiemPanel extends JPanel {
         }
 
         JOptionPane.showMessageDialog(this, "Lưu điểm thành công");
-        loadDiem(); // reload để lấy điểm tổng – chữ – kết quả
+        loadDiem();
     }
 
     private double parse(Object o) {
-        if (o == null) return 0;
+        if (o == null || o.toString().isBlank()) return 0;
         return Double.parseDouble(o.toString());
     }
 
-    /* ================= COMBO ================= */
+    /* ================= COMBO LOAD ================= */
 
     private void loadLop() {
-        String sql = "SELECT MaLop FROM Lop WHERE TrangThai = 1";
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next())
-                cboLop.addItem(rs.getString("MaLop"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        cboLop.removeAllItems();
+        diemDB.getAllLop().forEach(cboLop::addItem);
     }
 
     private void loadMon() {
-        String sql = "SELECT MaMon, TenMon FROM MonHoc WHERE TrangThai = 1";
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        cboMon.removeAllItems();
+        diemDB.getAllMon().forEach(cboMon::addItem);
+    }
 
-            while (rs.next())
-                cboMon.addItem(
-                        rs.getString("MaMon") + " - " + rs.getString("TenMon")
-                );
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void loadNamHoc() {
+        cboNamHoc.removeAllItems();
+        diemDB.getAllNamHoc().forEach(cboNamHoc::addItem);
     }
 }

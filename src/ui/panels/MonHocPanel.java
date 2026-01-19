@@ -206,7 +206,7 @@ public class MonHocPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             String maMon = txtMaMon.getText();
-            if (monHocDB.softDelete(maMon)) {
+            if (monHocDB.Delete(maMon)) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!");
                 clearForm();
                 loadData();

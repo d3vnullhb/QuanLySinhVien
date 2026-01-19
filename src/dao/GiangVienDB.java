@@ -102,27 +102,24 @@ public class GiangVienDB {
     }
 
     
-    public boolean softDelete(String maGV) {
+        public boolean Delete(String maGV) {
 
-        String sql = """
-            UPDATE GiangVien
-            SET TrangThai = N'Nghỉ'
-            WHERE MaGV = ?
-        """;
+         String sql = "DELETE FROM GiangVien WHERE MaGV = ?";
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+         try (Connection c = DBConnection.getConnection();
+              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setString(1, maGV.trim());
-            return ps.executeUpdate() > 0;
+             ps.setString(1, maGV.trim());
+             return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) {
-            System.err.println("Lỗi softDelete GiangVien:");
-            e.printStackTrace();
-        }
+         } catch (SQLException e) {
+             System.err.println("Lỗi Delete GiangVien:");
+             e.printStackTrace();
+         }
 
-        return false;
-    }
+         return false;
+     }
+
 
    
     public List<String> getAllMaKhoa() {
@@ -309,5 +306,27 @@ public boolean updateDiem(String maSV, String maMon,
     }
     return false;
 }
+    public boolean updateTaiKhoanGV(String maGV, String username) {
+
+        String sql = """
+            UPDATE GiangVien
+            SET TenDangNhap = ?
+            WHERE MaGV = ?
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            ps.setString(2, maGV);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi updateTaiKhoanGV:");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
 }
