@@ -73,7 +73,6 @@ public class QuanLyDiemPanel extends JPanel {
 
         table = new JTable(model);
         table.setRowHeight(26);
-        table.setDefaultEditor(Object.class, null);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         /* ================= BUTTON ================= */

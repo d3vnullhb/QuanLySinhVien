@@ -25,7 +25,6 @@ public class TeacherMainFrame extends JFrame {
 
     public TeacherMainFrame() {
         loadGiangVienInfo();
-
         setTitle("Cổng thông tin Giảng viên - " + hoTen);
         setSize(1100, 650);
         setLocationRelativeTo(null);
@@ -47,12 +46,19 @@ public class TeacherMainFrame extends JFrame {
         String tenDN = Session.currentUser.getTenDangNhap();
         String[] info = dao.getGiangVienByTenDangNhap(tenDN);
 
-        if (info != null) {
-            maGV = info[0];
-            hoTen = info[1];
-            email = info[2];
-            maKhoa = info[3];
+        
+        if (info == null || info[0] == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Không tìm thấy thông tin giảng viên!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
+
+        maGV = info[0];
+        hoTen = info[1];
+        email = info[2];
+        maKhoa = info[3];
     }
 
     /* ================= SIDEBAR ================= */
@@ -78,7 +84,8 @@ public class TeacherMainFrame extends JFrame {
         sidebar.add(menu, BorderLayout.NORTH);
         sidebar.add(btnLogout, BorderLayout.SOUTH);
 
-        btnHome.addActionListener(e -> cardLayout.show(contentPanel, "dashboard"));
+        btnHome.addActionListener(e ->
+                cardLayout.show(contentPanel, "dashboard"));
 
         btnInfo.addActionListener(e -> {
             contentPanel.remove(profilePanel);
@@ -92,7 +99,8 @@ public class TeacherMainFrame extends JFrame {
             loadTKB();
         });
 
-        btnNhapDiem.addActionListener(e -> cardLayout.show(contentPanel, "diem"));
+        btnNhapDiem.addActionListener(e ->
+                cardLayout.show(contentPanel, "diem"));
 
         btnLogout.addActionListener(e -> {
             if (JOptionPane.showConfirmDialog(this,
@@ -111,11 +119,13 @@ public class TeacherMainFrame extends JFrame {
         topPanel = new JPanel(new BorderLayout());
         topPanel.setPreferredSize(new Dimension(0, 55));
         topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        topPanel.setBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
         JLabel lblWelcome = new JLabel("Xin chào giảng viên: " + hoTen);
         lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblWelcome.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+        lblWelcome.setBorder(
+                BorderFactory.createEmptyBorder(10, 20, 10, 10));
 
         topPanel.add(lblWelcome, BorderLayout.WEST);
     }
@@ -125,18 +135,23 @@ public class TeacherMainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
+        // ===== DASHBOARD =====
         contentPanel.add(new DashboardPanel(), "dashboard");
 
+        // ===== PROFILE =====
         profilePanel = createProfilePanel();
         contentPanel.add(profilePanel, "info");
 
         // ===== TKB =====
         JPanel pnlTKB = new JPanel(new BorderLayout());
-        JLabel lblTKB = new JLabel("THỜI KHÓA BIỂU GIẢNG VIÊN", SwingConstants.CENTER);
+        JLabel lblTKB = new JLabel(
+                "THỜI KHÓA BIỂU GIẢNG VIÊN",
+                SwingConstants.CENTER);
         lblTKB.setFont(new Font("Segoe UI", Font.BOLD, 18));
 
         modelTKB = new DefaultTableModel(
-                new String[]{"Môn", "Lớp", "Ngày", "Thứ", "Tiết BĐ", "Số tiết", "Phòng"}, 0
+                new String[]{"Môn", "Lớp", "Ngày", "Thứ",
+                             "Tiết BĐ", "Số tiết", "Phòng"}, 0
         );
         tblTKB = new JTable(modelTKB);
         tblTKB.setRowHeight(26);
@@ -147,8 +162,9 @@ public class TeacherMainFrame extends JFrame {
         contentPanel.add(pnlTKB, "tkb");
 
         // ===== NHẬP ĐIỂM =====
-        NhapDiemGiangVienPanel pnlNhapDiem = new NhapDiemGiangVienPanel(maGV);
-        contentPanel.add(pnlNhapDiem, "diem");
+        contentPanel.add(
+                new NhapDiemGiangVienPanel(maGV),
+                "diem");
     }
 
     /* ================= PROFILE ================= */
@@ -158,16 +174,22 @@ public class TeacherMainFrame extends JFrame {
 
         JPanel card = new JPanel(new BorderLayout());
         card.setPreferredSize(new Dimension(500, 300));
-        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
+        card.setBorder(
+                BorderFactory.createLineBorder(
+                        new Color(220, 220, 220), 1));
 
         JLabel avatar = new JLabel(new ImageIcon(
-                new ImageIcon(getClass().getResource("/images/teacher.png"))
-                        .getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH)
+                new ImageIcon(
+                        getClass().getResource("/images/teacher.png"))
+                        .getImage()
+                        .getScaledInstance(
+                                120, 120, Image.SCALE_SMOOTH)
         ));
         avatar.setHorizontalAlignment(SwingConstants.CENTER);
 
         JPanel info = new JPanel(new GridLayout(5, 1, 5, 5));
-        info.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        info.setBorder(
+                BorderFactory.createEmptyBorder(20, 20, 20, 20));
         info.add(makeBold("Họ tên: " + hoTen));
         info.add(makeLabel("Mã GV: " + maGV));
         info.add(makeLabel("Email: " + email));
@@ -206,8 +228,11 @@ public class TeacherMainFrame extends JFrame {
     private JButton createMenuButton(String text, String iconName) {
         JButton btn = new JButton(text);
 
-        ImageIcon icon = new ImageIcon(getClass().getResource("/images/" + iconName));
-        Image img = icon.getImage().getScaledInstance(22, 22, Image.SCALE_SMOOTH);
+        ImageIcon icon =
+                new ImageIcon(getClass().getResource(
+                        "/images/" + iconName));
+        Image img = icon.getImage().getScaledInstance(
+                22, 22, Image.SCALE_SMOOTH);
         btn.setIcon(new ImageIcon(img));
 
         btn.setHorizontalAlignment(SwingConstants.LEFT);
@@ -219,13 +244,13 @@ public class TeacherMainFrame extends JFrame {
         btn.setBackground(SIDEBAR_COLOR);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 10));
+        btn.setBorder(
+                BorderFactory.createEmptyBorder(12, 20, 12, 10));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 btn.setBackground(SIDEBAR_HOVER);
             }
-
             public void mouseExited(java.awt.event.MouseEvent e) {
                 btn.setBackground(SIDEBAR_COLOR);
             }

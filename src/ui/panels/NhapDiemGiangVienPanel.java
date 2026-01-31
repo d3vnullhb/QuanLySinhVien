@@ -1,6 +1,5 @@
 package ui.panels;
 
-
 import dao.GiangVienDB;
 
 import javax.swing.*;
@@ -26,6 +25,7 @@ public class NhapDiemGiangVienPanel extends JPanel {
         loadMon();
     }
 
+    /* ================= UI ================= */
     private void initUI() {
 
         // ====== TOP ======
@@ -38,9 +38,16 @@ public class NhapDiemGiangVienPanel extends JPanel {
 
         // ====== TABLE ======
         model = new DefaultTableModel(
-                new String[]{"Mã SV","Họ tên","Lớp","CC","GK","CK","Tổng","Chữ","KQ"}, 0
-        );
+                new String[]{"Mã SV","Họ tên","Lớp",
+                             "CC","GK","CK","Tổng","Chữ","KQ"}, 0
+        ) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+
         table = new JTable(model);
+        table.setRowHeight(26);
         JScrollPane sp = new JScrollPane(table);
 
         // ====== FORM ======
@@ -49,26 +56,25 @@ public class NhapDiemGiangVienPanel extends JPanel {
 
         txtMaSV = new JTextField(); txtMaSV.setEnabled(false);
         txtHoTen = new JTextField(); txtHoTen.setEnabled(false);
-        txtLop = new JTextField(); txtLop.setEnabled(false);
+        txtLop   = new JTextField(); txtLop.setEnabled(false);
         txtCC = new JTextField();
         txtGK = new JTextField();
         txtCK = new JTextField();
 
         form.add(new JLabel("Mã SV")); form.add(txtMaSV);
         form.add(new JLabel("Họ tên")); form.add(txtHoTen);
-        form.add(new JLabel("Lớp")); form.add(txtLop);
+        form.add(new JLabel("Lớp"));   form.add(txtLop);
         form.add(new JLabel("Chuyên cần")); form.add(txtCC);
-        form.add(new JLabel("Giữa kỳ")); form.add(txtGK);
-        form.add(new JLabel("Cuối kỳ")); form.add(txtCK);
+        form.add(new JLabel("Giữa kỳ"));    form.add(txtGK);
+        form.add(new JLabel("Cuối kỳ"));    form.add(txtCK);
 
         // ====== BUTTON ======
         JPanel buttons = new JPanel();
-
-        JButton btnThem = new JButton("Thêm / Lưu");
-        JButton btnXoa = new JButton("Xóa");
+        JButton btnLuu = new JButton("Lưu điểm");
+        JButton btnXoa = new JButton("Bỏ chọn");
         JButton btnMoi = new JButton("Làm mới");
 
-        buttons.add(btnThem);
+        buttons.add(btnLuu);
         buttons.add(btnXoa);
         buttons.add(btnMoi);
 
@@ -83,13 +89,14 @@ public class NhapDiemGiangVienPanel extends JPanel {
 
         // ====== EVENT ======
         btnLoad.addActionListener(e -> loadSinhVien());
-        btnThem.addActionListener(e -> luuDiem());
+        btnLuu.addActionListener(e -> luuDiem());
         btnMoi.addActionListener(e -> clearForm());
-        btnXoa.addActionListener(e -> xoaDong());
+        btnXoa.addActionListener(e -> clearForm());
 
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
     }
 
+    /* ================= DATA ================= */
     private void loadMon() {
         cboMon.removeAllItems();
         for (String m : dao.getMonGiangDay(maGV)) {
@@ -119,33 +126,44 @@ public class NhapDiemGiangVienPanel extends JPanel {
         txtCK.setText(model.getValueAt(row,5).toString());
     }
 
+    /* ================= SAVE SCORE ================= */
     private void luuDiem() {
-        try {
-            String maSV = txtMaSV.getText();
-            String maMon = (String) cboMon.getSelectedItem();
+        if (txtMaSV.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Chọn sinh viên");
+            return;
+        }
 
+        String maMon = (String) cboMon.getSelectedItem();
+        if (maMon == null) {
+            JOptionPane.showMessageDialog(this, "Chưa chọn môn học");
+            return;
+        }
+
+        try {
             float cc = Float.parseFloat(txtCC.getText());
             float gk = Float.parseFloat(txtGK.getText());
             float ck = Float.parseFloat(txtCK.getText());
 
-            if (dao.updateDiem(maSV, maMon, cc, gk, ck)) {
+            if (cc < 0 || cc > 10 || gk < 0 || gk > 10 || ck < 0 || ck > 10) {
+                JOptionPane.showMessageDialog(this, "Điểm phải từ 0 đến 10");
+                return;
+            }
+
+            if (dao.updateDiem(
+                    txtMaSV.getText(),
+                    maMon,
+                    cc, gk, ck)) {
+
                 JOptionPane.showMessageDialog(this, "Lưu điểm thành công");
                 loadSinhVien();
             }
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Điểm không hợp lệ!");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Điểm không hợp lệ");
         }
     }
 
-    private void xoaDong() {
-        int row = table.getSelectedRow();
-        if (row == -1) return;
-
-        model.removeRow(row);
-        clearForm();
-    }
-
+    /* ================= CLEAR ================= */
     private void clearForm() {
         txtMaSV.setText("");
         txtHoTen.setText("");

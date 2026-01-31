@@ -61,7 +61,7 @@ public class LoginFrame extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblTitle = new JLabel("Welcome Back");
+        JLabel lblTitle = new JLabel("HỆ THỐNG QUẢN LÝ SINH VIÊN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
 
         JLabel lblSub = new JLabel("Đăng nhập để tiếp tục");

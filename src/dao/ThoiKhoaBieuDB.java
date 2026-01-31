@@ -11,16 +11,17 @@ public class ThoiKhoaBieuDB {
 
     public List<ThoiKhoaBieu> getAllActive() {
         List<ThoiKhoaBieu> list = new ArrayList<>();
-        String sql = """
-            SELECT tkb.MaTKB, tkb.MaLop, mh.TenMon, gv.HoTen,
-                          tkb.NgayHoc,  
-                          tkb.Thu, tkb.TietBatDau, tkb.SoTiet,
-                          tkb.Phong, tkb.HocKy, tkb.NamHoc
-            FROM ThoiKhoaBieu tkb
-            JOIN MonHoc mh ON tkb.MaMon = mh.MaMon
-            JOIN GiangVien gv ON tkb.MaGV = gv.MaGV
-            WHERE tkb.TrangThai = 1
-        """;
+      String sql = """
+        SELECT tkb.MaTKB, tkb.MaLop, mh.TenMon, gv.HoTen,
+               tkb.NgayHoc,
+               tkb.Thu, tkb.TietBatDau, tkb.SoTiet,
+               tkb.Phong, tkb.HocKy, tkb.NamHoc
+        FROM ThoiKhoaBieu tkb
+        JOIN MonHoc mh ON tkb.MaMon = mh.MaMon
+        JOIN GiangVien gv ON tkb.MaGV = gv.MaGV
+        WHERE tkb.TrangThai = 1
+       ORDER BY tkb.NgayHoc, tkb.Thu, tkb.TietBatDau
+    """;
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);

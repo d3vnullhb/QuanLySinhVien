@@ -31,13 +31,17 @@ public class PhanCongPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // ===== TITLE =====
+        /* ===== TITLE ===== */
         JLabel lblTitle = new JLabel("PHÂN CÔNG GIẢNG DẠY", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(lblTitle, BorderLayout.NORTH);
 
-        // ===== FORM =====
+        /* ===== CENTER ===== */
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(Color.WHITE);
+
+        /* ===== FORM ===== */
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin phân công"));
         formPanel.setBackground(Color.WHITE);
@@ -50,7 +54,7 @@ public class PhanCongPanel extends JPanel {
         cboMonHoc = new JComboBox<>();
         cboLop = new JComboBox<>();
         cboHocKy = new JComboBox<>(new Integer[]{1, 2, 3});
-        txtNamHoc = new JTextField("2024-2025");
+        txtNamHoc = new JTextField("2024-2025", 15);
 
         loadGiangVien();
         loadMonHoc();
@@ -81,7 +85,7 @@ public class PhanCongPanel extends JPanel {
         gbc.gridx = 1;
         formPanel.add(txtNamHoc, gbc);
 
-        // ===== BUTTONS =====
+        /* ===== BUTTONS ===== */
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
         btnPanel.setBackground(Color.WHITE);
 
@@ -101,25 +105,35 @@ public class PhanCongPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         formPanel.add(btnPanel, gbc);
 
-        add(formPanel, BorderLayout.WEST);
+        centerPanel.add(formPanel, BorderLayout.NORTH);
 
-        // ===== TABLE =====
+        /* ===== TABLE ===== */
         tableModel = new DefaultTableModel(
                 new Object[]{"ID", "Giảng viên", "Môn học", "Lớp", "Học kỳ", "Năm học"}, 0
         ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
 
         table = new JTable(tableModel);
         table.setRowHeight(28);
-        add(new JScrollPane(table), BorderLayout.CENTER);
 
+        // Ẩn cột ID
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+
+        /* TABLE Ở DƯỚI */
+        centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        add(centerPanel, BorderLayout.CENTER);
+
+        /* ===== LOAD DATA ===== */
         loadData();
 
-        // ===== EVENTS =====
+        /* ===== EVENTS ===== */
         btnAdd.addActionListener(e -> addPhanCong());
         btnUpdate.addActionListener(e -> updatePhanCong());
         btnDelete.addActionListener(e -> deletePhanCong());
@@ -128,7 +142,7 @@ public class PhanCongPanel extends JPanel {
         table.getSelectionModel().addListSelectionListener(e -> fillFormFromTable());
     }
 
-    // ================= LOAD DATA =================
+    /* ================= LOAD DATA ================= */
     private void loadData() {
         tableModel.setRowCount(0);
         List<PhanCong> list = phanCongDB.getAllActive();
@@ -145,7 +159,7 @@ public class PhanCongPanel extends JPanel {
         }
     }
 
-    // ================= ADD =================
+    /* ================= ADD ================= */
     private void addPhanCong() {
         String namHoc = txtNamHoc.getText().trim();
         if (!namHoc.matches("\\d{4}-\\d{4}")) {
@@ -165,7 +179,7 @@ public class PhanCongPanel extends JPanel {
         }
     }
 
-    // ================= UPDATE =================
+    /* ================= UPDATE ================= */
     private void updatePhanCong() {
         int row = table.getSelectedRow();
         if (row < 0) return;
@@ -190,7 +204,7 @@ public class PhanCongPanel extends JPanel {
         }
     }
 
-    // ================= DELETE =================
+    /* ================= DELETE ================= */
     private void deletePhanCong() {
         int row = table.getSelectedRow();
         if (row < 0) return;
@@ -209,7 +223,7 @@ public class PhanCongPanel extends JPanel {
         }
     }
 
-    // ================= FORM =================
+    /* ================= FORM ================= */
     private void fillFormFromTable() {
         int row = table.getSelectedRow();
         if (row < 0) return;
@@ -217,11 +231,11 @@ public class PhanCongPanel extends JPanel {
         btnUpdate.setEnabled(true);
         btnDelete.setEnabled(true);
 
-        String tenGV = getCellValue(row, 1);
-        String tenMon = getCellValue(row, 2);
-        String lop = getCellValue(row, 3);
-        int hocKy = Integer.parseInt(getCellValue(row, 4));
-        String namHoc = getCellValue(row, 5);
+        String tenGV = table.getValueAt(row, 1).toString();
+        String tenMon = table.getValueAt(row, 2).toString();
+        String lop = table.getValueAt(row, 3).toString();
+        int hocKy = Integer.parseInt(table.getValueAt(row, 4).toString());
+        String namHoc = table.getValueAt(row, 5).toString();
 
         for (int i = 0; i < cboGiangVien.getItemCount(); i++)
             if (cboGiangVien.getItemAt(i).contains(tenGV))
@@ -236,11 +250,6 @@ public class PhanCongPanel extends JPanel {
         txtNamHoc.setText(namHoc);
     }
 
-    private String getCellValue(int row, int col) {
-        Object val = table.getValueAt(row, col);
-        return val == null ? "" : val.toString();
-    }
-
     private void clearForm() {
         cboGiangVien.setSelectedIndex(0);
         cboMonHoc.setSelectedIndex(0);
@@ -252,7 +261,7 @@ public class PhanCongPanel extends JPanel {
         btnDelete.setEnabled(false);
     }
 
-    // ================= LOAD COMBO =================
+    /* ================= LOAD COMBO ================= */
     private void loadGiangVien() {
         String sql = "SELECT MaGV, HoTen FROM GiangVien WHERE TrangThai = N'Đang công tác'";
         try (Connection con = DBConnection.getConnection();

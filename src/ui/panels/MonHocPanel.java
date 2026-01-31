@@ -16,6 +16,7 @@ public class MonHocPanel extends JPanel {
     private JTextField txtMaMon;
     private JTextField txtTenMon;
     private JTextField txtSoTinChi;
+    private JComboBox<String> cboTrangThai;
 
     private MonHocDB monHocDB = new MonHocDB();
 
@@ -23,17 +24,17 @@ public class MonHocPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // ===== TITLE =====
+        /* ===== TITLE ===== */
         JLabel lblTitle = new JLabel("QUẢN LÝ MÔN HỌC", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(lblTitle, BorderLayout.NORTH);
 
-        // ===== CENTER =====
+        /* ===== CENTER ===== */
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBackground(Color.WHITE);
 
-        // ===== FORM =====
+        /* ===== FORM ===== */
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin môn học"));
         formPanel.setBackground(Color.WHITE);
@@ -61,31 +62,36 @@ public class MonHocPanel extends JPanel {
         gbc.gridx = 1;
         formPanel.add(txtSoTinChi, gbc);
 
-        // ===== BUTTONS =====
+        /* ===== BUTTONS ===== */
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        btnPanel.setBackground(Color.WHITE);
 
         JButton btnAdd = new JButton("Thêm");
         JButton btnUpdate = new JButton("Sửa");
         JButton btnDelete = new JButton("Xóa");
+        JButton btnRestore = new JButton("Khôi phục");
         JButton btnReset = new JButton("Làm mới");
+
+        cboTrangThai = new JComboBox<>(new String[]{"Đang hoạt động", "Đã xóa"});
 
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
+        btnPanel.add(btnRestore);
         btnPanel.add(btnReset);
+        btnPanel.add(new JLabel("Xem:"));
+        btnPanel.add(cboTrangThai);
 
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
         formPanel.add(btnPanel, gbc);
 
         centerPanel.add(formPanel, BorderLayout.NORTH);
 
-        // ===== TABLE =====
+        /* ===== TABLE ===== */
         tableModel = new DefaultTableModel(
                 new Object[]{"Mã môn", "Tên môn", "Số tín chỉ"}, 0
         ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
@@ -96,21 +102,29 @@ public class MonHocPanel extends JPanel {
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // ===== EVENTS =====
+        /* ===== EVENTS ===== */
         loadData();
 
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
+        cboTrangThai.addActionListener(e -> {
+            clearForm();
+            loadData();
+        });
 
         btnAdd.addActionListener(e -> addMonHoc());
         btnUpdate.addActionListener(e -> updateMonHoc());
-        btnDelete.addActionListener(e -> deleteMonHoc());
+        btnDelete.addActionListener(e -> softDelete());
+        btnRestore.addActionListener(e -> restoreMonHoc());
         btnReset.addActionListener(e -> clearForm());
     }
 
-    // ===== LOAD DATA =====
+    /* ================= LOAD DATA ================= */
     private void loadData() {
         tableModel.setRowCount(0);
-        List<MonHoc> list = monHocDB.getAllActive();
+
+        List<MonHoc> list = cboTrangThai.getSelectedItem().equals("Đang hoạt động")
+                ? monHocDB.getAllActive()
+                : monHocDB.getAllDeleted();
 
         for (MonHoc mh : list) {
             tableModel.addRow(new Object[]{
@@ -121,18 +135,18 @@ public class MonHocPanel extends JPanel {
         }
     }
 
-    // ===== FILL FORM =====
+    /* ================= FILL FORM ================= */
     private void fillForm() {
-        int row = table.getSelectedRow();
-        if (row >= 0) {
-            txtMaMon.setText(table.getValueAt(row, 0).toString());
-            txtTenMon.setText(table.getValueAt(row, 1).toString());
-            txtSoTinChi.setText(table.getValueAt(row, 2).toString());
-            txtMaMon.setEnabled(false);
-        }
+        int r = table.getSelectedRow();
+        if (r < 0) return;
+
+        txtMaMon.setText(table.getValueAt(r, 0).toString());
+        txtTenMon.setText(table.getValueAt(r, 1).toString());
+        txtSoTinChi.setText(table.getValueAt(r, 2).toString());
+        txtMaMon.setEnabled(false);
     }
 
-    // ===== ADD =====
+    /* ================= ADD ================= */
     private void addMonHoc() {
         if (txtMaMon.getText().isEmpty()
                 || txtTenMon.getText().isEmpty()
@@ -144,7 +158,7 @@ public class MonHocPanel extends JPanel {
         int soTC;
         try {
             soTC = Integer.parseInt(txtSoTinChi.getText());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Số tín chỉ phải là số!");
             return;
         }
@@ -155,24 +169,19 @@ public class MonHocPanel extends JPanel {
         mh.setSoTinChi(soTC);
 
         if (monHocDB.insert(mh)) {
-            JOptionPane.showMessageDialog(this, "Thêm môn học thành công!");
-            clearForm();
             loadData();
+            clearForm();
         }
     }
 
-    // ===== UPDATE =====
+    /* ================= UPDATE ================= */
     private void updateMonHoc() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn môn học cần sửa!");
-            return;
-        }
+        if (table.getSelectedRow() < 0) return;
 
         int soTC;
         try {
             soTC = Integer.parseInt(txtSoTinChi.getText());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Số tín chỉ phải là số!");
             return;
         }
@@ -182,39 +191,44 @@ public class MonHocPanel extends JPanel {
         mh.setTenMon(txtTenMon.getText());
         mh.setSoTinChi(soTC);
 
-        if (monHocDB.update(mh)) {
-            JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
-            clearForm();
+        monHocDB.update(mh);
+        loadData();
+    }
+
+    /* ================= SOFT DELETE ================= */
+    private void softDelete() {
+        if (table.getSelectedRow() < 0) return;
+
+        if (JOptionPane.showConfirmDialog(
+                this,
+                "Xóa môn học này?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        ) == JOptionPane.YES_OPTION) {
+
+            monHocDB.softDelete(txtMaMon.getText());
             loadData();
+            clearForm();
         }
     }
 
-    // ===== DELETE (SOFT) =====
-    private void deleteMonHoc() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn môn học cần xóa!");
+    /* ================= RESTORE ================= */
+    private void restoreMonHoc() {
+        if (!cboTrangThai.getSelectedItem().equals("Đã xóa")) {
+            JOptionPane.showMessageDialog(this, "Chuyển sang chế độ 'Đã xóa' để khôi phục!");
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có chắc muốn xóa môn học này?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
+        int r = table.getSelectedRow();
+        if (r < 0) return;
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            String maMon = txtMaMon.getText();
-            if (monHocDB.Delete(maMon)) {
-                JOptionPane.showMessageDialog(this, "Xóa thành công!");
-                clearForm();
-                loadData();
-            }
-        }
+        String maMon = table.getValueAt(r, 0).toString();
+        monHocDB.restore(maMon);
+        loadData();
+        clearForm();
     }
 
-    // ===== CLEAR FORM =====
+    /* ================= CLEAR ================= */
     private void clearForm() {
         txtMaMon.setText("");
         txtTenMon.setText("");

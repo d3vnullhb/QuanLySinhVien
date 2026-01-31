@@ -83,6 +83,22 @@ public class TaiKhoanDB {
         }
         return false;
     }
+    public boolean delete(String tenDangNhap) {
+
+        String sql = "DELETE FROM TaiKhoan WHERE TenDangNhap = ?";
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, tenDangNhap.trim());
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi delete TaiKhoan:");
+            e.printStackTrace();
+        }
+        return false;
+    }
 
   
     public boolean resetPassword(String tenDangNhap, String matKhauMoi) {

@@ -16,6 +16,7 @@ public class LopPanel extends JPanel {
     private JTextField txtMaLop;
     private JTextField txtTenLop;
     private JComboBox<String> cboKhoa;
+    private JComboBox<String> cboTrangThai;
 
     private LopDB lopDB = new LopDB();
 
@@ -23,72 +24,58 @@ public class LopPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // ===== TITLE =====
         JLabel lblTitle = new JLabel("QUẢN LÝ LỚP", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         add(lblTitle, BorderLayout.NORTH);
 
-        // ===== CENTER =====
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBackground(Color.WHITE);
-
-        // ===== FORM =====
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin lớp"));
-        formPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(8,8,8,8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         txtMaLop = new JTextField(15);
         txtTenLop = new JTextField(15);
         cboKhoa = new JComboBox<>();
+        loadKhoa();
 
-        loadKhoa(); 
+        gbc.gridx=0; gbc.gridy=0; formPanel.add(new JLabel("Mã lớp:"), gbc);
+        gbc.gridx=1; formPanel.add(txtMaLop, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Mã lớp:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtMaLop, gbc);
+        gbc.gridx=0; gbc.gridy=1; formPanel.add(new JLabel("Tên lớp:"), gbc);
+        gbc.gridx=1; formPanel.add(txtTenLop, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Tên lớp:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtTenLop, gbc);
+        gbc.gridx=0; gbc.gridy=2; formPanel.add(new JLabel("Khoa:"), gbc);
+        gbc.gridx=1; formPanel.add(cboKhoa, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
-        formPanel.add(new JLabel("Khoa:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(cboKhoa, gbc);
-
-        // ===== BUTTONS =====
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        btnPanel.setBackground(Color.WHITE);
-
+        JPanel btnPanel = new JPanel(new FlowLayout());
         JButton btnAdd = new JButton("Thêm");
         JButton btnUpdate = new JButton("Sửa");
         JButton btnDelete = new JButton("Xóa");
+        JButton btnRestore = new JButton("Khôi phục");
         JButton btnReset = new JButton("Làm mới");
-        
+
+        cboTrangThai = new JComboBox<>(new String[]{"Đang hoạt động", "Đã xóa"});
+
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
+        btnPanel.add(btnRestore);
         btnPanel.add(btnReset);
+        btnPanel.add(new JLabel("Xem:"));
+        btnPanel.add(cboTrangThai);
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        gbc.gridx=0; gbc.gridy=3; gbc.gridwidth=2;
         formPanel.add(btnPanel, gbc);
 
         centerPanel.add(formPanel, BorderLayout.NORTH);
 
-        // ===== TABLE =====
         tableModel = new DefaultTableModel(
-                new Object[]{"Mã lớp", "Tên lớp", "Khoa"}, 0
-        ) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+                new Object[]{"Mã lớp","Tên lớp","Khoa"},0) {
+            public boolean isCellEditable(int r,int c){ return false; }
         };
 
         table = new JTable(tableModel);
@@ -97,27 +84,27 @@ public class LopPanel extends JPanel {
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // ===== EVENTS =====
         loadData();
 
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
+        cboTrangThai.addActionListener(e -> { clearForm(); loadData(); });
 
         btnAdd.addActionListener(e -> addLop());
         btnUpdate.addActionListener(e -> updateLop());
         btnDelete.addActionListener(e -> deleteLop());
+        btnRestore.addActionListener(e -> restoreLop());
         btnReset.addActionListener(e -> clearForm());
     }
 
-    // ===== LOAD DATA =====
     private void loadData() {
         tableModel.setRowCount(0);
-        List<Lop> list = lopDB.getAllActive();
+        List<Lop> list = cboTrangThai.getSelectedItem().equals("Đang hoạt động")
+                ? lopDB.getAllActive()
+                : lopDB.getAllDeleted();
 
-        for (Lop lop : list) {
+        for (Lop l : list) {
             tableModel.addRow(new Object[]{
-                    lop.getMaLop(),
-                    lop.getTenLop(),
-                    lop.getTenKhoa()
+                    l.getMaLop(), l.getTenLop(), l.getMaKhoa()
             });
         }
     }
@@ -132,78 +119,57 @@ public class LopPanel extends JPanel {
         cboKhoa.addItem("DL");
     }
 
-    // ===== FILL FORM =====
     private void fillForm() {
-        int row = table.getSelectedRow();
-        if (row >= 0) {
-            txtMaLop.setText(table.getValueAt(row, 0).toString());
-            txtTenLop.setText(table.getValueAt(row, 1).toString());
-            cboKhoa.setSelectedItem(table.getValueAt(row, 2).toString());
-            txtMaLop.setEnabled(false);
-        }
+        int r = table.getSelectedRow();
+        if (r < 0) return;
+
+        txtMaLop.setText(table.getValueAt(r,0).toString());
+        txtTenLop.setText(table.getValueAt(r,1).toString());
+        cboKhoa.setSelectedItem(table.getValueAt(r,2).toString());
+        txtMaLop.setEnabled(false);
     }
 
-    // ===== ADD =====
     private void addLop() {
-        if (txtMaLop.getText().isEmpty() || txtTenLop.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu!");
-            return;
-        }
-
-        Lop lop = new Lop();
-        lop.setMaLop(txtMaLop.getText().trim());
-        lop.setTenLop(txtTenLop.getText().trim());
-        lop.setMaKhoa(cboKhoa.getSelectedItem().toString());
-
-        if (lopDB.insert(lop)) {
-            JOptionPane.showMessageDialog(this, "Thêm lớp thành công!");
-            clearForm();
-            loadData();
-        }
-    }
-
-    // ===== UPDATE =====
-    private void updateLop() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn lớp cần sửa!");
-            return;
-        }
+        if (txtMaLop.getText().isEmpty() || txtTenLop.getText().isEmpty()) return;
 
         Lop lop = new Lop();
         lop.setMaLop(txtMaLop.getText());
         lop.setTenLop(txtTenLop.getText());
         lop.setMaKhoa(cboKhoa.getSelectedItem().toString());
 
-        if (lopDB.update(lop)) {
-            JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
-            clearForm();
+        if (lopDB.insert(lop)) {
             loadData();
+            clearForm();
         }
     }
 
+    private void updateLop() {
+        if (table.getSelectedRow() < 0) return;
+
+        Lop lop = new Lop();
+        lop.setMaLop(txtMaLop.getText());
+        lop.setTenLop(txtTenLop.getText());
+        lop.setMaKhoa(cboKhoa.getSelectedItem().toString());
+
+        lopDB.update(lop);
+        loadData();
+    }
+
     private void deleteLop() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn lớp cần xóa!");
-            return;
-        }
+        if (table.getSelectedRow() < 0) return;
+        lopDB.softDelete(txtMaLop.getText());
+        loadData();
+        clearForm();
+    }
 
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có chắc muốn xóa lớp này?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
+    private void restoreLop() {
+        int r = table.getSelectedRow();
+        if (r < 0) return;
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            String maLop = txtMaLop.getText();
-            if (lopDB.Delete(maLop)) {
-                JOptionPane.showMessageDialog(this, "Xóa thành công!");
-                clearForm();
-                loadData();
-            }
-        }
+        String maLop = table.getValueAt(r,0).toString();
+        lopDB.restore(maLop);
+        loadData();
+        clearForm();
     }
 
     private void clearForm() {

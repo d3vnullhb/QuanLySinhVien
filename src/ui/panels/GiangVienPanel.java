@@ -3,12 +3,10 @@ package ui.panels;
 import dao.GiangVienDB;
 import dao.TaiKhoanDB;
 import model.GiangVien;
-import util.DBConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 
 public class GiangVienPanel extends JPanel {
 
@@ -16,155 +14,99 @@ public class GiangVienPanel extends JPanel {
     private DefaultTableModel model;
 
     private JTextField txtMaGV, txtHoTen, txtEmail, txtUsername;
-    private JPasswordField txtPassword, txtNewPass;
-    private JComboBox<String> cboKhoa, cboTaiKhoan;
-
-    private JButton btnAdd, btnUpdate, btnDelete, btnClear;
-    private JButton btnTaoTK, btnResetMK;
+    private JPasswordField txtPassword;
+    private JComboBox<String> cboKhoa;
 
     private GiangVienDB gvDB = new GiangVienDB();
     private TaiKhoanDB tkDB = new TaiKhoanDB();
 
     public GiangVienPanel() {
         setLayout(new BorderLayout(5,5));
-        setBackground(Color.WHITE);
-
-        Dimension small = new Dimension(130, 24);
 
         /* ================= FORM ================= */
-        JPanel form = new JPanel(new GridBagLayout());
+        JPanel form = new JPanel(new GridLayout(3,4,8,8));
         form.setBorder(BorderFactory.createTitledBorder("Thông tin giảng viên"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(3,5,3,5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        txtMaGV = new JTextField(); txtMaGV.setPreferredSize(small);
-        txtHoTen = new JTextField(); txtHoTen.setPreferredSize(small);
-        txtEmail = new JTextField(); txtEmail.setPreferredSize(small);
+        txtMaGV = new JTextField();
+        txtHoTen = new JTextField();
+        txtEmail = new JTextField();
+        txtUsername = new JTextField();
+        txtPassword = new JPasswordField();
 
-        cboKhoa = new JComboBox<>(); cboKhoa.setPreferredSize(small);
-        cboTaiKhoan = new JComboBox<>(); cboTaiKhoan.setPreferredSize(small);
-
+        cboKhoa = new JComboBox<>();
         loadKhoa();
-        loadTaiKhoan();
 
-        int r = 0;
-        gbc.gridx=0; gbc.gridy=r; form.add(new JLabel("Mã GV"), gbc);
-        gbc.gridx=1; form.add(txtMaGV, gbc);
-        gbc.gridx=2; form.add(new JLabel("Họ tên"), gbc);
-        gbc.gridx=3; form.add(txtHoTen, gbc);
+        form.add(new JLabel("Mã GV"));
+        form.add(txtMaGV);
+        form.add(new JLabel("Họ tên"));
+        form.add(txtHoTen);
 
-        r++;
-        gbc.gridx=0; gbc.gridy=r; form.add(new JLabel("Email"), gbc);
-        gbc.gridx=1; form.add(txtEmail, gbc);
-        gbc.gridx=2; form.add(new JLabel("Khoa"), gbc);
-        gbc.gridx=3; form.add(cboKhoa, gbc);
+        form.add(new JLabel("Email"));
+        form.add(txtEmail);
+        form.add(new JLabel("Khoa"));
+        form.add(cboKhoa);
 
-        r++;
-        gbc.gridx=0; gbc.gridy=r; form.add(new JLabel("Tài khoản"), gbc);
-        gbc.gridx=1; form.add(cboTaiKhoan, gbc);
-
-        /* ================= TẠO TK ================= */
-        JPanel tkPanel = new JPanel(new GridBagLayout());
-        tkPanel.setBorder(BorderFactory.createTitledBorder("Tạo tài khoản"));
-        GridBagConstraints g2 = new GridBagConstraints();
-        g2.insets = new Insets(3,5,3,5);
-        g2.fill = GridBagConstraints.HORIZONTAL;
-
-        txtUsername = new JTextField(); txtUsername.setPreferredSize(small);
-        txtPassword = new JPasswordField(); txtPassword.setPreferredSize(small);
-
-        g2.gridx=0; g2.gridy=0; tkPanel.add(new JLabel("Username"), g2);
-        g2.gridx=1; tkPanel.add(txtUsername, g2);
-        g2.gridx=0; g2.gridy=1; tkPanel.add(new JLabel("Password"), g2);
-        g2.gridx=1; tkPanel.add(txtPassword, g2);
-
-        btnTaoTK = new JButton("+ Tạo");
-        g2.gridx=1; g2.gridy=2;
-        tkPanel.add(btnTaoTK, g2);
-
-        /* ================= RESET MK ================= */
-        JPanel resetPanel = new JPanel(new GridBagLayout());
-        resetPanel.setBorder(BorderFactory.createTitledBorder("Reset mật khẩu"));
-        GridBagConstraints g3 = new GridBagConstraints();
-        g3.insets = new Insets(3,5,3,5);
-        g3.fill = GridBagConstraints.HORIZONTAL;
-
-        txtNewPass = new JPasswordField(); txtNewPass.setPreferredSize(small);
-        btnResetMK = new JButton("Reset");
-
-        g3.gridx=0; g3.gridy=0; resetPanel.add(new JLabel("Mật khẩu mới"), g3);
-        g3.gridx=1; resetPanel.add(txtNewPass, g3);
-        g3.gridx=1; g3.gridy=1; resetPanel.add(btnResetMK, g3);
-
-        /* ================= RIGHT ================= */
-        JPanel right = new JPanel(new BorderLayout(5,5));
-        right.setPreferredSize(new Dimension(260,1));
-        right.add(tkPanel, BorderLayout.NORTH);
-        right.add(resetPanel, BorderLayout.SOUTH);
-
-        JPanel formWrap = new JPanel(new BorderLayout(5,5));
-        formWrap.add(form, BorderLayout.CENTER);
-        formWrap.add(right, BorderLayout.EAST);
+        form.add(new JLabel("Username"));
+        form.add(txtUsername);
+        form.add(new JLabel("Password"));
+        form.add(txtPassword);
 
         /* ================= BUTTON ================= */
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        btnAdd = new JButton("Thêm");
-        btnUpdate = new JButton("Sửa");
-        btnDelete = new JButton("Xóa");
-        btnClear = new JButton("Làm mới");
+        JButton btnAdd = new JButton("Thêm");
+        JButton btnUpdate = new JButton("Sửa");
+        JButton btnDelete = new JButton("Xóa");
+        JButton btnClear = new JButton("Làm mới");
 
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
         btnPanel.add(btnClear);
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(formWrap, BorderLayout.CENTER);
-        topPanel.add(btnPanel, BorderLayout.SOUTH);
+        /* ================= TOP (FIX UI) ================= */
+        JPanel top = new JPanel(new BorderLayout(5,5));
+        top.add(form, BorderLayout.CENTER);
+        top.add(btnPanel, BorderLayout.SOUTH);
 
         /* ================= TABLE ================= */
         model = new DefaultTableModel(
-                new Object[]{"STT","Mã GV","Họ tên","Email","Khoa","Tài khoản","Trạng thái"},0
-        ){
+                new Object[]{"STT","Mã GV","Họ tên","Email","Khoa","Username","Trạng thái"},0
+        ) {
+            @Override
             public boolean isCellEditable(int r,int c){ return false; }
         };
 
         table = new JTable(model);
         table.setRowHeight(26);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JSplitPane split = new JSplitPane(
-                JSplitPane.VERTICAL_SPLIT,
-                topPanel,
-                new JScrollPane(table)
-        );
-        split.setResizeWeight(0.30);
-        split.setDividerSize(6);
+        JScrollPane scroll = new JScrollPane(table);
 
-        add(split, BorderLayout.CENTER);
+        /* ================= ADD ================= */
+        add(top, BorderLayout.NORTH);
+        add(scroll, BorderLayout.CENTER);
 
         loadData();
 
-        /* ================= EVENTS ================= */
+        /* ================= EVENT ================= */
         btnAdd.addActionListener(e -> addGV());
         btnUpdate.addActionListener(e -> updateGV());
         btnDelete.addActionListener(e -> deleteGV());
         btnClear.addActionListener(e -> clearForm());
-        btnTaoTK.addActionListener(e -> taoTaiKhoan());
-        btnResetMK.addActionListener(e -> resetMK());
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
     }
 
     /* ================= LOGIC ================= */
 
-    private void loadKhoa() {
-        cboKhoa.removeAllItems();
-        for (String k : gvDB.getAllMaKhoa()) cboKhoa.addItem(k);
+    private boolean validEmail(String email) {
+        return email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$");
     }
 
-    private void loadTaiKhoan() {
-        cboTaiKhoan.removeAllItems();
-        for (String t : tkDB.getAllTenDangNhapGV()) cboTaiKhoan.addItem(t);
+    private void loadKhoa() {
+        cboKhoa.removeAllItems();
+        for (String k : gvDB.getAllMaKhoa()) {
+            cboKhoa.addItem(k);
+        }
     }
 
     private void loadData() {
@@ -172,54 +114,127 @@ public class GiangVienPanel extends JPanel {
         int stt = 1;
         for (GiangVien gv : gvDB.getAll()) {
             model.addRow(new Object[]{
-                    stt++, gv.getMaGV(), gv.getHoTen(),
-                    gv.getEmail(), gv.getMaKhoa(),
-                    gv.getTenDangNhap(), gv.getTrangThai()
+                    stt++,
+                    gv.getMaGV(),
+                    gv.getHoTen(),
+                    gv.getEmail(),
+                    gv.getMaKhoa(),
+                    gv.getTenDangNhap(),
+                    gv.getTrangThai()
             });
         }
     }
 
+    /* ================= ADD ================= */
     private void addGV() {
-        gvDB.insert(
-                txtMaGV.getText(),
+        String maGV = txtMaGV.getText().trim();
+        String hoTen = txtHoTen.getText().trim();
+        String email = txtEmail.getText().trim();
+        String user = txtUsername.getText().trim();
+        String pass = new String(txtPassword.getPassword()).trim();
+
+        if (maGV.isEmpty() || hoTen.isEmpty() || email.isEmpty()
+                || user.isEmpty() || pass.isEmpty()) {
+            msg("Không được để trống dữ liệu");
+            return;
+        }
+
+        if (!validEmail(email)) {
+            msg("Email không hợp lệ");
+            return;
+        }
+
+        if (gvDB.existsMaGV(maGV)) { msg("Mã GV đã tồn tại"); return; }
+        if (gvDB.existsEmail(email)) { msg("Email đã tồn tại"); return; }
+        if (tkDB.exists(user)) { msg("Username đã tồn tại"); return; }
+
+        if (!tkDB.insert(user, pass, "GIANGVIEN")) {
+            msg("Tạo tài khoản thất bại");
+            return;
+        }
+
+        if (gvDB.insert(maGV, hoTen, email,
+                cboKhoa.getSelectedItem().toString(), user)) {
+
+            msg("Thêm giảng viên thành công");
+            loadData();
+            clearForm();
+        }
+    }
+
+    /* ================= UPDATE ================= */
+    private void updateGV() {
+        if (table.getSelectedRow() < 0) {
+            msg("Chọn giảng viên");
+            return;
+        }
+
+        String maGV = txtMaGV.getText().trim();
+        String email = txtEmail.getText().trim();
+
+        if (!validEmail(email)) {
+            msg("Email không hợp lệ");
+            return;
+        }
+
+        if (gvDB.existsEmailExceptMaGV(email, maGV)) {
+            msg("Email đã được dùng");
+            return;
+        }
+
+        gvDB.update(
+                maGV,
                 txtHoTen.getText(),
-                txtEmail.getText(),
+                email,
                 cboKhoa.getSelectedItem().toString(),
                 null
         );
-        loadData(); clearForm();
-    }
 
-    private void updateGV() {
-        gvDB.update(
-                txtMaGV.getText(),
-                txtHoTen.getText(),
-                txtEmail.getText(),
-                cboKhoa.getSelectedItem().toString(),
-                cboTaiKhoan.getSelectedItem()==null?null:cboTaiKhoan.getSelectedItem().toString()
-        );
+        msg("Cập nhật thành công");
         loadData();
     }
 
+    /* ================= DELETE ================= */
     private void deleteGV() {
         if (table.getSelectedRow() < 0) return;
-        gvDB.Delete(txtMaGV.getText());
-        loadData(); clearForm();
+
+        if (JOptionPane.showConfirmDialog(
+                this,
+                "Xóa giảng viên?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        ) != JOptionPane.YES_OPTION) return;
+
+        String user = txtUsername.getText();
+        gvDB.delete(txtMaGV.getText());
+        tkDB.delete(user);
+
+        loadData();
+        clearForm();
+    }
+    private String getValue(int row, int col) {
+        Object v = model.getValueAt(row, col);
+        if (v == null) return "";
+        return v.toString();
     }
 
-    private void fillForm() {
+
+    /* ================= FORM ================= */
+   private void fillForm() {
         int r = table.getSelectedRow();
         if (r < 0) return;
 
-        txtMaGV.setText(model.getValueAt(r,1).toString());
-        txtHoTen.setText(model.getValueAt(r,2).toString());
-        txtEmail.setText(model.getValueAt(r,3).toString());
-        cboKhoa.setSelectedItem(model.getValueAt(r,4));
-        txtUsername.setText(
-                model.getValueAt(r,5)==null?"":model.getValueAt(r,5).toString()
-        );
+        txtMaGV.setText(getValue(r, 1));
+        txtHoTen.setText(getValue(r, 2));
+        txtEmail.setText(getValue(r, 3));
+        cboKhoa.setSelectedItem(getValue(r, 4));
+        txtUsername.setText(getValue(r, 5));
+
         txtMaGV.setEditable(false);
+        txtUsername.setEditable(false);
+        txtPassword.setText("");
     }
+
 
     private void clearForm() {
         txtMaGV.setText("");
@@ -227,26 +242,12 @@ public class GiangVienPanel extends JPanel {
         txtHoTen.setText("");
         txtEmail.setText("");
         txtUsername.setText("");
+        txtUsername.setEditable(true);
         txtPassword.setText("");
-        txtNewPass.setText("");
         table.clearSelection();
     }
 
-    private void taoTaiKhoan() {
-        if (tkDB.insert(txtUsername.getText(),
-                new String(txtPassword.getPassword()),
-                "GIANGVIEN")) {
-
-            gvDB.updateTaiKhoanGV(txtMaGV.getText(), txtUsername.getText());
-            loadTaiKhoan();
-            loadData();
-        }
-    }
-
-    private void resetMK() {
-        if (tkDB.resetPassword(txtUsername.getText(),
-                new String(txtNewPass.getPassword()))) {
-            JOptionPane.showMessageDialog(this, "Reset thành công");
-        }
+    private void msg(String s) {
+        JOptionPane.showMessageDialog(this, s);
     }
 }
