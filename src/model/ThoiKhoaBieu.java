@@ -1,12 +1,17 @@
 package model;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class ThoiKhoaBieu {
+
     private int maTKB;
     private String maLop;
+    private String maMon;
+    private String maGV;
+
     private String tenMon;
     private String tenGV;
+
     private Date ngayHoc;
     private int thu;
     private int tietBatDau;
@@ -15,21 +20,28 @@ public class ThoiKhoaBieu {
     private int hocKy;
     private String namHoc;
 
+    /* ================= GET SET ================= */
+
     public int getMaTKB() { return maTKB; }
     public void setMaTKB(int maTKB) { this.maTKB = maTKB; }
 
     public String getMaLop() { return maLop; }
     public void setMaLop(String maLop) { this.maLop = maLop; }
 
+    public String getMaMon() { return maMon; }
+    public void setMaMon(String maMon) { this.maMon = maMon; }
+
+    public String getMaGV() { return maGV; }
+    public void setMaGV(String maGV) { this.maGV = maGV; }
+
     public String getTenMon() { return tenMon; }
     public void setTenMon(String tenMon) { this.tenMon = tenMon; }
 
     public String getTenGV() { return tenGV; }
     public void setTenGV(String tenGV) { this.tenGV = tenGV; }
-    
+
     public Date getNgayHoc() { return ngayHoc; }
     public void setNgayHoc(Date ngayHoc) { this.ngayHoc = ngayHoc; }
-
 
     public int getThu() { return thu; }
     public void setThu(int thu) { this.thu = thu; }
