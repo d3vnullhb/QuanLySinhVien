@@ -9,20 +9,29 @@ import java.util.List;
 
 public class GiangVienDB {
 
-    /* ================== GIẢNG VIÊN ================== */
+    /* ================= LOAD GIẢNG VIÊN ================= */
 
-    public List<GiangVien> getAll() {
+    public List<GiangVien> getAllActive() {
+        return getByStatus("Đang công tác");
+    }
+
+    public List<GiangVien> getAllDeleted() {
+        return getByStatus("Nghỉ việc");
+    }
+
+    private List<GiangVien> getByStatus(String status) {
         List<GiangVien> list = new ArrayList<>();
-
         String sql = """
             SELECT MaGV, HoTen, Email, MaKhoa, TenDangNhap, TrangThai
             FROM GiangVien
-            WHERE TrangThai = N'Đang công tác'
+            WHERE TrangThai = ?
         """;
 
         try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, status);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 list.add(new GiangVien(
@@ -34,46 +43,13 @@ public class GiangVienDB {
                         rs.getString("TrangThai")
                 ));
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
 
-    public boolean existsMaGV(String maGV) {
-        return exists("SELECT 1 FROM GiangVien WHERE MaGV = ?", maGV);
-    }
-
-    public boolean existsEmail(String email) {
-        return exists("SELECT 1 FROM GiangVien WHERE Email = ?", email);
-    }
-
-    public boolean existsEmailExceptMaGV(String email, String maGV) {
-        return exists("SELECT 1 FROM GiangVien WHERE Email = ? AND MaGV <> ?", email, maGV);
-    }
-
-    public boolean existsTenDangNhap(String tenDN) {
-        return exists("SELECT 1 FROM GiangVien WHERE TenDangNhap = ?", tenDN);
-    }
-
-    public boolean existsTenDangNhapExceptMaGV(String tenDN, String maGV) {
-        return exists("SELECT 1 FROM GiangVien WHERE TenDangNhap = ? AND MaGV <> ?", tenDN, maGV);
-    }
-
-    private boolean exists(String sql, String... params) {
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-
-            for (int i = 0; i < params.length; i++) {
-                ps.setString(i + 1, params[i].trim());
-            }
-            return ps.executeQuery().next();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+    /* ================= INSERT / UPDATE ================= */
 
     public boolean insert(String maGV, String hoTen, String email,
                           String maKhoa, String tenDangNhap) {
@@ -87,59 +63,67 @@ public class GiangVienDB {
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setString(1, maGV.trim());
-            ps.setString(2, hoTen.trim());
-            ps.setString(3, email.trim());
-            ps.setString(4, maKhoa.trim());
+            ps.setString(1, maGV);
+            ps.setString(2, hoTen);
+            ps.setString(3, email);
+            ps.setString(4, maKhoa);
             ps.setString(5, tenDangNhap);
 
             return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean update(String maGV, String hoTen, String email,
-                          String maKhoa, String tenDangNhap) {
-
+    public boolean update(String maGV, String hoTen, String email, String maKhoa) {
         String sql = """
             UPDATE GiangVien
-            SET HoTen = ?, Email = ?, MaKhoa = ?, TenDangNhap = ?
+            SET HoTen = ?, Email = ?, MaKhoa = ?
             WHERE MaGV = ?
         """;
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setString(1, hoTen.trim());
-            ps.setString(2, email.trim());
-            ps.setString(3, maKhoa.trim());
-            ps.setString(4, tenDangNhap);
-            ps.setString(5, maGV.trim());
+            ps.setString(1, hoTen);
+            ps.setString(2, email);
+            ps.setString(3, maKhoa);
+            ps.setString(4, maGV);
 
             return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean delete(String maGV) {
-        String sql = "DELETE FROM GiangVien WHERE MaGV = ?";
+    /* ================= SOFT DELETE / RESTORE ================= */
+
+    public boolean softDelete(String maGV) {
+        return updateTrangThai(maGV, "Nghỉ việc");
+    }
+
+    public boolean restore(String maGV) {
+        return updateTrangThai(maGV, "Đang công tác");
+    }
+
+    private boolean updateTrangThai(String maGV, String tt) {
+        String sql = "UPDATE GiangVien SET TrangThai = ? WHERE MaGV = ?";
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setString(1, maGV.trim());
+            ps.setString(1, tt);
+            ps.setString(2, maGV);
             return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
+
+    /* ================= KHOA ================= */
 
     public List<String> getAllMaKhoa() {
         List<String> list = new ArrayList<>();
@@ -148,17 +132,20 @@ public class GiangVienDB {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) list.add(rs.getString(1));
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
 
+    /* ================= LOGIN – GIẢNG VIÊN ================= */
+
     public String[] getGiangVienByTenDangNhap(String tenDN) {
         String sql = """
             SELECT MaGV, HoTen, Email, MaKhoa
-            FROM GiangVien WHERE TenDangNhap = ?
+            FROM GiangVien
+            WHERE TenDangNhap = ?
+              AND TrangThai = N'Đang công tác'
         """;
 
         try (Connection c = DBConnection.getConnection();
@@ -180,7 +167,7 @@ public class GiangVienDB {
         return null;
     }
 
-    /* ================== TKB + ĐIỂM (FIX LỖI UI) ================== */
+    /* ================= THỜI KHÓA BIỂU ================= */
 
     public List<Object[]> getTKBGiangVien(String maGV) {
         List<Object[]> list = new ArrayList<>();
@@ -190,8 +177,7 @@ public class GiangVienDB {
                    tkb.Thu, tkb.TietBatDau, tkb.SoTiet, tkb.Phong
             FROM ThoiKhoaBieu tkb
             JOIN MonHoc mh ON tkb.MaMon = mh.MaMon
-            WHERE tkb.MaGV = ? AND tkb.TrangThai = 1
-            ORDER BY tkb.NgayHoc, tkb.TietBatDau
+            WHERE tkb.MaGV = ?
         """;
 
         try (Connection c = DBConnection.getConnection();
@@ -216,6 +202,8 @@ public class GiangVienDB {
         }
         return list;
     }
+
+    /* ================= NHẬP ĐIỂM ================= */
 
     public List<String> getMonGiangDay(String maGV) {
         List<String> list = new ArrayList<>();

@@ -1,7 +1,6 @@
 package ui.panels;
 
 import dao.GiangVienDB;
-import dao.TaiKhoanDB;
 import model.GiangVien;
 
 import javax.swing.*;
@@ -14,16 +13,16 @@ public class GiangVienPanel extends JPanel {
     private DefaultTableModel model;
 
     private JTextField txtMaGV, txtHoTen, txtEmail, txtUsername;
-    private JPasswordField txtPassword;
-    private JComboBox<String> cboKhoa;
+    private JComboBox<String> cboKhoa, cboTrangThai;
+
+    private JButton btnAdd, btnUpdate, btnDelete, btnRestore, btnClear;
 
     private GiangVienDB gvDB = new GiangVienDB();
-    private TaiKhoanDB tkDB = new TaiKhoanDB();
 
     public GiangVienPanel() {
         setLayout(new BorderLayout(5,5));
 
-        /* ================= FORM ================= */
+        /* ===== FORM ===== */
         JPanel form = new JPanel(new GridLayout(3,4,8,8));
         form.setBorder(BorderFactory.createTitledBorder("Thông tin giảng viên"));
 
@@ -31,7 +30,7 @@ public class GiangVienPanel extends JPanel {
         txtHoTen = new JTextField();
         txtEmail = new JTextField();
         txtUsername = new JTextField();
-        txtPassword = new JPasswordField();
+        txtUsername.setEnabled(false);
 
         cboKhoa = new JComboBox<>();
         loadKhoa();
@@ -48,71 +47,77 @@ public class GiangVienPanel extends JPanel {
 
         form.add(new JLabel("Username"));
         form.add(txtUsername);
-        form.add(new JLabel("Password"));
-        form.add(txtPassword);
 
-        /* ================= BUTTON ================= */
+        /* ===== BUTTON ===== */
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnAdd = new JButton("Thêm");
-        JButton btnUpdate = new JButton("Sửa");
-        JButton btnDelete = new JButton("Xóa");
-        JButton btnClear = new JButton("Làm mới");
+
+        btnAdd = new JButton("Thêm");
+        btnUpdate = new JButton("Sửa");
+        btnDelete = new JButton("Xóa");
+        btnRestore = new JButton("Khôi phục");
+        btnClear = new JButton("Làm mới");
+
+        cboTrangThai = new JComboBox<>(new String[]{
+                "Đang công tác",
+                "Đã xóa"
+        });
 
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
+        btnPanel.add(btnRestore);
         btnPanel.add(btnClear);
+        btnPanel.add(new JLabel("Xem:"));
+        btnPanel.add(cboTrangThai);
 
-        /* ================= TOP (FIX UI) ================= */
-        JPanel top = new JPanel(new BorderLayout(5,5));
+        JPanel top = new JPanel(new BorderLayout());
         top.add(form, BorderLayout.CENTER);
         top.add(btnPanel, BorderLayout.SOUTH);
 
-        /* ================= TABLE ================= */
+        /* ===== TABLE ===== */
         model = new DefaultTableModel(
                 new Object[]{"STT","Mã GV","Họ tên","Email","Khoa","Username","Trạng thái"},0
         ) {
-            @Override
             public boolean isCellEditable(int r,int c){ return false; }
         };
 
         table = new JTable(model);
         table.setRowHeight(26);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JScrollPane scroll = new JScrollPane(table);
-
-        /* ================= ADD ================= */
         add(top, BorderLayout.NORTH);
-        add(scroll, BorderLayout.CENTER);
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
         loadData();
 
-        /* ================= EVENT ================= */
-        btnAdd.addActionListener(e -> addGV());
-        btnUpdate.addActionListener(e -> updateGV());
+        /* ===== EVENTS ===== */
+        cboTrangThai.addActionListener(e -> {
+            clearForm();
+            loadData();
+        });
+
         btnDelete.addActionListener(e -> deleteGV());
+        btnRestore.addActionListener(e -> restoreGV());
         btnClear.addActionListener(e -> clearForm());
+
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
     }
 
     /* ================= LOGIC ================= */
 
-    private boolean validEmail(String email) {
-        return email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$");
-    }
-
     private void loadKhoa() {
         cboKhoa.removeAllItems();
-        for (String k : gvDB.getAllMaKhoa()) {
+        for (String k : gvDB.getAllMaKhoa())
             cboKhoa.addItem(k);
-        }
     }
 
     private void loadData() {
         model.setRowCount(0);
         int stt = 1;
-        for (GiangVien gv : gvDB.getAll()) {
+
+        boolean active = cboTrangThai.getSelectedItem().equals("Đang công tác");
+        var list = active ? gvDB.getAllActive() : gvDB.getAllDeleted();
+
+        for (GiangVien gv : list) {
             model.addRow(new Object[]{
                     stt++,
                     gv.getMaGV(),
@@ -123,131 +128,67 @@ public class GiangVienPanel extends JPanel {
                     gv.getTrangThai()
             });
         }
+
+        btnRestore.setEnabled(true);
+        btnDelete.setEnabled(true);
     }
 
-    /* ================= ADD ================= */
-    private void addGV() {
-        String maGV = txtMaGV.getText().trim();
-        String hoTen = txtHoTen.getText().trim();
-        String email = txtEmail.getText().trim();
-        String user = txtUsername.getText().trim();
-        String pass = new String(txtPassword.getPassword()).trim();
-
-        if (maGV.isEmpty() || hoTen.isEmpty() || email.isEmpty()
-                || user.isEmpty() || pass.isEmpty()) {
-            msg("Không được để trống dữ liệu");
-            return;
-        }
-
-        if (!validEmail(email)) {
-            msg("Email không hợp lệ");
-            return;
-        }
-
-        if (gvDB.existsMaGV(maGV)) { msg("Mã GV đã tồn tại"); return; }
-        if (gvDB.existsEmail(email)) { msg("Email đã tồn tại"); return; }
-        if (tkDB.exists(user)) { msg("Username đã tồn tại"); return; }
-
-        if (!tkDB.insert(user, pass, "GIANGVIEN")) {
-            msg("Tạo tài khoản thất bại");
-            return;
-        }
-
-        if (gvDB.insert(maGV, hoTen, email,
-                cboKhoa.getSelectedItem().toString(), user)) {
-
-            msg("Thêm giảng viên thành công");
-            loadData();
-            clearForm();
-        }
-    }
-
-    /* ================= UPDATE ================= */
-    private void updateGV() {
-        if (table.getSelectedRow() < 0) {
-            msg("Chọn giảng viên");
-            return;
-        }
-
-        String maGV = txtMaGV.getText().trim();
-        String email = txtEmail.getText().trim();
-
-        if (!validEmail(email)) {
-            msg("Email không hợp lệ");
-            return;
-        }
-
-        if (gvDB.existsEmailExceptMaGV(email, maGV)) {
-            msg("Email đã được dùng");
-            return;
-        }
-
-        gvDB.update(
-                maGV,
-                txtHoTen.getText(),
-                email,
-                cboKhoa.getSelectedItem().toString(),
-                null
-        );
-
-        msg("Cập nhật thành công");
-        loadData();
-    }
-
-    /* ================= DELETE ================= */
     private void deleteGV() {
-        if (table.getSelectedRow() < 0) return;
+        int r = table.getSelectedRow();
+        if (r < 0) return;
 
         if (JOptionPane.showConfirmDialog(
                 this,
-                "Xóa giảng viên?",
+                "Chuyển giảng viên sang Nghỉ việc?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         ) != JOptionPane.YES_OPTION) return;
 
-        String user = txtUsername.getText();
-        gvDB.delete(txtMaGV.getText());
-        tkDB.delete(user);
-
+        gvDB.softDelete(model.getValueAt(r,1).toString());
         loadData();
         clearForm();
     }
-    private String getValue(int row, int col) {
-        Object v = model.getValueAt(row, col);
-        if (v == null) return "";
-        return v.toString();
+
+    private void restoreGV() {
+        int r = table.getSelectedRow();
+        if (r < 0) {
+            JOptionPane.showMessageDialog(this, "Chọn giảng viên cần khôi phục");
+            return;
+        }
+
+        if (!cboTrangThai.getSelectedItem().equals("Đã xóa")) {
+            JOptionPane.showMessageDialog(this, "Chỉ khôi phục giảng viên đã xóa");
+            return;
+        }
+
+        gvDB.restore(model.getValueAt(r,1).toString());
+        JOptionPane.showMessageDialog(this, "Khôi phục thành công!");
+        loadData();
+        clearForm();
     }
 
 
-    /* ================= FORM ================= */
-   private void fillForm() {
+    private void fillForm() {
         int r = table.getSelectedRow();
         if (r < 0) return;
 
-        txtMaGV.setText(getValue(r, 1));
-        txtHoTen.setText(getValue(r, 2));
-        txtEmail.setText(getValue(r, 3));
-        cboKhoa.setSelectedItem(getValue(r, 4));
-        txtUsername.setText(getValue(r, 5));
+        txtMaGV.setText(model.getValueAt(r,1).toString());
+        txtHoTen.setText(model.getValueAt(r,2).toString());
+        txtEmail.setText(model.getValueAt(r,3).toString());
+        cboKhoa.setSelectedItem(model.getValueAt(r,4));
+        txtUsername.setText(
+                model.getValueAt(r,5) == null ? "" : model.getValueAt(r,5).toString()
+        );
 
         txtMaGV.setEditable(false);
-        txtUsername.setEditable(false);
-        txtPassword.setText("");
     }
-
 
     private void clearForm() {
         txtMaGV.setText("");
-        txtMaGV.setEditable(true);
         txtHoTen.setText("");
         txtEmail.setText("");
         txtUsername.setText("");
-        txtUsername.setEditable(true);
-        txtPassword.setText("");
+        txtMaGV.setEditable(true);
         table.clearSelection();
-    }
-
-    private void msg(String s) {
-        JOptionPane.showMessageDialog(this, s);
     }
 }

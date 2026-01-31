@@ -9,6 +9,7 @@ import java.util.List;
 
 public class SinhVienDB {
 
+    /* ================= ĐANG HỌC ================= */
     public List<SinhVien> getAllActive() {
         List<SinhVien> list = new ArrayList<>();
 
@@ -16,21 +17,38 @@ public class SinhVienDB {
             SELECT MaSV, HoTen, NgaySinh, GioiTinh,
                    DiaChi, SoDienThoai, MaLop, TenDangNhap
             FROM SinhVien
-            WHERE TrangThai = N'Đang học'
+           WHERE TrangThai IN (N'Đang học', N'Bảo lưu')
         """;
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                list.add(map(rs));
-            }
+            while (rs.next()) list.add(map(rs));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
+
+    /* ================= ĐÃ NGHỈ ================= */
+   public List<SinhVien> getAllDeleted() {
+    List<SinhVien> list = new ArrayList<>();
+    String sql = """
+        SELECT MaSV, HoTen, NgaySinh, GioiTinh,
+               DiaChi, SoDienThoai, MaLop, TenDangNhap
+        FROM SinhVien
+        WHERE TrangThai = N'Thôi học'
+    """;
+    try (Connection con = DBConnection.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) list.add(map(rs));
+    } catch (Exception e) { e.printStackTrace(); }
+    return list;
+}
+
 
     public boolean existsMaSV(String maSV) {
         String sql = "SELECT 1 FROM SinhVien WHERE MaSV = ?";
@@ -45,6 +63,7 @@ public class SinhVienDB {
         return false;
     }
 
+    /* ================= THÊM ================= */
     public boolean insert(SinhVien sv) {
 
         if (existsMaSV(sv.getMaSV())) return false;
@@ -69,44 +88,47 @@ public class SinhVienDB {
             ps.setString(8, sv.getTenDangNhap());
 
             return ps.executeUpdate() > 0;
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-   public boolean update(SinhVien sv) {
+    /* ================= UPDATE ================= */
+    public boolean update(SinhVien sv) {
+        String sql = """
+            UPDATE SinhVien
+            SET HoTen = ?, NgaySinh = ?, GioiTinh = ?,
+                DiaChi = ?, SoDienThoai = ?, MaLop = ?
+            WHERE MaSV = ?
+        """;
 
-    String sql = """
-        UPDATE SinhVien
-        SET HoTen = ?,
-            NgaySinh = ?,
-            GioiTinh = ?,
-            DiaChi = ?,
-            SoDienThoai = ?,
-            MaLop = ?,
-            TenDangNhap = CASE
-                WHEN TenDangNhap IS NULL THEN ?
-                ELSE TenDangNhap
-            END
-        WHERE MaSV = ?
-    """;
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
+            ps.setString(1, sv.getHoTen());
+            ps.setDate(2, new java.sql.Date(sv.getNgaySinh().getTime()));
+            ps.setString(3, sv.getGioiTinh());
+            ps.setString(4, sv.getDiaChi());
+            ps.setString(5, sv.getSoDienThoai());
+            ps.setString(6, sv.getMaLop());
+            ps.setString(7, sv.getMaSV());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /* ================= XÓA MỀM ================= */
+   public boolean softDelete(String maSV) {
+    String sql = "UPDATE SinhVien SET TrangThai = N'Thôi học' WHERE MaSV = ?";
     try (Connection con = DBConnection.getConnection();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
-        ps.setString(1, sv.getHoTen());
-        ps.setDate(2, new java.sql.Date(sv.getNgaySinh().getTime()));
-        ps.setString(3, sv.getGioiTinh());
-        ps.setString(4, sv.getDiaChi());
-        ps.setString(5, sv.getSoDienThoai());
-        ps.setString(6, sv.getMaLop());
-        ps.setString(7, sv.getTenDangNhap()); 
-        ps.setString(8, sv.getMaSV());
-
+        ps.setString(1, maSV);
         return ps.executeUpdate() > 0;
-
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -114,18 +136,18 @@ public class SinhVienDB {
 }
 
 
-    public boolean delete(String maSV) {
-        String sql = "DELETE FROM SinhVien WHERE MaSV = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    /* ================= KHÔI PHỤC ================= */
+    public boolean restore(String maSV) {
+     String sql = "UPDATE SinhVien SET TrangThai = N'Đang học' WHERE MaSV = ?";
+     try (Connection con = DBConnection.getConnection();
+          PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, maSV);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+         ps.setString(1, maSV);
+         return ps.executeUpdate() > 0;
+     } catch (Exception e) { e.printStackTrace(); }
+     return false;
+ }
+
 
     private SinhVien map(ResultSet rs) throws SQLException {
         SinhVien sv = new SinhVien();

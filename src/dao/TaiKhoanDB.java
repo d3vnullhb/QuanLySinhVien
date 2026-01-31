@@ -9,6 +9,8 @@ import java.util.List;
 
 public class TaiKhoanDB {
 
+    /* ================= LOGIN ================= */
+
     public TaiKhoan login(String user, String pass) {
 
         String sql = """
@@ -34,31 +36,29 @@ public class TaiKhoanDB {
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi login TaiKhoan:");
             e.printStackTrace();
         }
         return null;
     }
 
-   
+    /* ================= CHECK ================= */
+
     public boolean exists(String tenDangNhap) {
-        String sql = "SELECT COUNT(*) FROM TaiKhoan WHERE TenDangNhap = ?";
+        String sql = "SELECT 1 FROM TaiKhoan WHERE TenDangNhap = ?";
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
             ps.setString(1, tenDangNhap.trim());
-            ResultSet rs = ps.executeQuery();
-            rs.next();
-            return rs.getInt(1) > 0;
+            return ps.executeQuery().next();
 
         } catch (SQLException e) {
-            System.err.println("Lỗi exists TaiKhoan:");
             e.printStackTrace();
         }
         return false;
     }
 
-   
+    /* ================= INSERT ================= */
+
     public boolean insert(String tenDangNhap, String matKhau, String vaiTro) {
 
         String sql = """
@@ -78,14 +78,20 @@ public class TaiKhoanDB {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("Lỗi insert TaiKhoan:");
             e.printStackTrace();
         }
         return false;
     }
-    public boolean delete(String tenDangNhap) {
 
-        String sql = "DELETE FROM TaiKhoan WHERE TenDangNhap = ?";
+    /* ================= SOFT DELETE ================= */
+
+    public boolean softDelete(String tenDangNhap) {
+
+        String sql = """
+            UPDATE TaiKhoan
+            SET TrangThai = N'Ngừng hoạt động'
+            WHERE TenDangNhap = ?
+        """;
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -94,13 +100,35 @@ public class TaiKhoanDB {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("Lỗi delete TaiKhoan:");
             e.printStackTrace();
         }
         return false;
     }
 
-  
+    /* ================= RESTORE ================= */
+
+    public boolean restore(String tenDangNhap) {
+
+        String sql = """
+            UPDATE TaiKhoan
+            SET TrangThai = N'Hoạt động'
+            WHERE TenDangNhap = ?
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, tenDangNhap.trim());
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /* ================= RESET PASSWORD ================= */
+
     public boolean resetPassword(String tenDangNhap, String matKhauMoi) {
 
         String sql = """
@@ -119,61 +147,43 @@ public class TaiKhoanDB {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("Lỗi resetPassword:");
             e.printStackTrace();
         }
         return false;
     }
 
-   
+    /* ================= LIST ================= */
+
     public List<String> getAllTenDangNhapGV() {
-
-        List<String> list = new ArrayList<>();
-
-        String sql = """
-            SELECT TenDangNhap
-            FROM TaiKhoan
-            WHERE VaiTro = 'GIANGVIEN'
-              AND TrangThai = N'Hoạt động'
-        """;
-
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(rs.getString("TenDangNhap"));
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Lỗi getAllTenDangNhapGV:");
-            e.printStackTrace();
-        }
-        return list;
+        return getByRole("GIANGVIEN");
     }
 
-   
     public List<String> getAllTenDangNhapSV() {
+        return getByRole("SINHVIEN");
+    }
+
+    private List<String> getByRole(String role) {
 
         List<String> list = new ArrayList<>();
 
         String sql = """
             SELECT TenDangNhap
             FROM TaiKhoan
-            WHERE VaiTro = 'SINHVIEN'
+            WHERE VaiTro = ?
               AND TrangThai = N'Hoạt động'
         """;
 
         try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, role);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 list.add(rs.getString("TenDangNhap"));
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi getAllTenDangNhapSV:");
             e.printStackTrace();
         }
         return list;

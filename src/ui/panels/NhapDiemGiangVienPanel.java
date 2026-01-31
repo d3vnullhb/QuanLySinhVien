@@ -149,10 +149,11 @@ public class NhapDiemGiangVienPanel extends JPanel {
                 return;
             }
 
-            if (dao.updateDiem(
-                    txtMaSV.getText(),
-                    maMon,
-                    cc, gk, ck)) {
+           if (dao.updateDiem(
+                txtMaSV.getText(),
+                maMon,
+                cc, gk, ck)) {
+
 
                 JOptionPane.showMessageDialog(this, "Lưu điểm thành công");
                 loadSinhVien();
