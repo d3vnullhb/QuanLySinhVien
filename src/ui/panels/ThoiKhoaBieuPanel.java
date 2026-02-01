@@ -10,7 +10,6 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ThoiKhoaBieuPanel extends JPanel {
@@ -40,23 +39,43 @@ public class ThoiKhoaBieuPanel extends JPanel {
 
         JPanel bottom = new JPanel();
         JButton btnAdd = new JButton("Thêm TKB");
+        JButton btnEdit = new JButton("Sửa TKB");
         JButton btnImport = new JButton("Import CSV");
         JButton btnDelete = new JButton("Xóa");
 
         bottom.add(btnAdd);
+        bottom.add(btnEdit);
         bottom.add(btnImport);
         bottom.add(btnDelete);
         add(bottom, BorderLayout.SOUTH);
 
         btnAdd.addActionListener(e -> {
-            new TKBForm().setVisible(true);
+            new TKBForm(null).setVisible(true);
             loadData();
         });
 
+        btnEdit.addActionListener(e -> editTKB());
         btnImport.addActionListener(e -> importCSV());
         btnDelete.addActionListener(e -> deleteTKB());
 
         loadData();
+    }
+
+    private void editTKB() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Chọn 1 dòng để sửa");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(table.getValueAt(row,1).toString());
+            ThoiKhoaBieu t = db.findById(id);
+            new TKBForm(t).setVisible(true);
+            loadData();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
     }
 
     private void loadData() {
@@ -92,7 +111,7 @@ public class ThoiKhoaBieuPanel extends JPanel {
         loadData();
     }
 
-        private void importCSV() {
+    private void importCSV() {
         JFileChooser fc = new JFileChooser();
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
@@ -112,7 +131,6 @@ public class ThoiKhoaBieuPanel extends JPanel {
                 String[] a = line.split(",");
                 if (a.length < 10) {
                     fail++;
-                    log.append("Dòng ").append(lineNo).append(": thiếu cột\n");
                     continue;
                 }
 
@@ -131,24 +149,17 @@ public class ThoiKhoaBieuPanel extends JPanel {
                 } catch (Exception ex) {
                     fail++;
                     log.append("Dòng ").append(lineNo)
-                       .append(": ").append(ex.getMessage()).append("\n");
+                            .append(": ").append(ex.getMessage()).append("\n");
                 }
             }
 
             loadData();
-
             JOptionPane.showMessageDialog(this,
-                "Import hoàn tất!\n" +
-                "Thành công: " + success + "\n" +
-                "Bỏ qua: " + fail + "\n\n" +
-                log.toString()
+                    "Import xong!\nThành công: " + success + "\nLỗi: " + fail + "\n\n" + log
             );
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Lỗi đọc file: " + e.getMessage(),
-                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
-
 }

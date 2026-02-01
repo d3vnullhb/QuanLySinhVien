@@ -50,6 +50,39 @@ public class ThoiKhoaBieuDB {
         }
         return list;
     }
+        public ThoiKhoaBieu findById(int id) throws Exception {
+          String sql = """
+              SELECT MaTKB, MaLop, MaMon, MaGV, NgayHoc, Thu,
+                     TietBatDau, SoTiet, Phong, HocKy, NamHoc
+              FROM ThoiKhoaBieu
+              WHERE MaTKB = ?
+          """;
+
+          try (Connection con = DBConnection.getConnection();
+               PreparedStatement ps = con.prepareStatement(sql)) {
+
+              ps.setInt(1, id);
+              ResultSet rs = ps.executeQuery();
+
+              if (rs.next()) {
+                  ThoiKhoaBieu t = new ThoiKhoaBieu();
+                  t.setMaTKB(rs.getInt("MaTKB"));
+                  t.setMaLop(rs.getString("MaLop"));
+                  t.setMaMon(rs.getString("MaMon"));
+                  t.setMaGV(rs.getString("MaGV"));
+                  t.setNgayHoc(rs.getDate("NgayHoc"));
+                  t.setThu(rs.getInt("Thu"));
+                  t.setTietBatDau(rs.getInt("TietBatDau"));
+                  t.setSoTiet(rs.getInt("SoTiet"));
+                  t.setPhong(rs.getString("Phong"));
+                  t.setHocKy(rs.getInt("HocKy"));
+                  t.setNamHoc(rs.getString("NamHoc"));
+                  return t;
+              }
+          }
+          return null;
+      }
+
 
     private boolean isConflict(
             Connection con,

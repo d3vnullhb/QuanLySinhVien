@@ -24,6 +24,7 @@ public class PhanCongPanel extends JPanel {
     private JTextField txtNamHoc;
 
     private JButton btnAdd, btnUpdate, btnDelete, btnClear;
+    private JButton btnViewDeleted, btnRestore;
 
     private PhanCongDB phanCongDB = new PhanCongDB();
 
@@ -93,14 +94,20 @@ public class PhanCongPanel extends JPanel {
         btnUpdate = new JButton("Sửa");
         btnDelete = new JButton("Xóa");
         btnClear = new JButton("Làm mới");
+        btnViewDeleted = new JButton("Đã xóa");
+        btnRestore = new JButton("Khôi phục");
 
-        btnUpdate.setEnabled(false);
-        btnDelete.setEnabled(false);
+        btnAdd.setEnabled(true);
+        btnUpdate.setEnabled(true);
+        btnDelete.setEnabled(true);
+        btnRestore.setEnabled(false); 
 
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
         btnPanel.add(btnClear);
+        btnPanel.add(btnViewDeleted);
+        btnPanel.add(btnRestore);
 
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         formPanel.add(btnPanel, gbc);
@@ -120,14 +127,11 @@ public class PhanCongPanel extends JPanel {
         table = new JTable(tableModel);
         table.setRowHeight(28);
 
-        // Ẩn cột ID
         table.getColumnModel().getColumn(0).setMinWidth(0);
         table.getColumnModel().getColumn(0).setMaxWidth(0);
         table.getColumnModel().getColumn(0).setWidth(0);
 
-        /* TABLE Ở DƯỚI */
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-
         add(centerPanel, BorderLayout.CENTER);
 
         /* ===== LOAD DATA ===== */
@@ -137,16 +141,35 @@ public class PhanCongPanel extends JPanel {
         btnAdd.addActionListener(e -> addPhanCong());
         btnUpdate.addActionListener(e -> updatePhanCong());
         btnDelete.addActionListener(e -> deletePhanCong());
-        btnClear.addActionListener(e -> clearForm());
+
+        btnClear.addActionListener(e -> {
+            loadData();
+            clearForm();
+            btnRestore.setEnabled(false);
+        });
+
+        btnViewDeleted.addActionListener(e -> loadDeletedData());
+
+        btnRestore.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) return;
+
+            int maPC = (int) table.getValueAt(row, 0);
+            if (phanCongDB.restore(maPC)) {
+                JOptionPane.showMessageDialog(this, "Khôi phục thành công!");
+                loadData();
+                clearForm();
+                btnRestore.setEnabled(false);
+            }
+        });
 
         table.getSelectionModel().addListSelectionListener(e -> fillFormFromTable());
     }
 
-    /* ================= LOAD DATA ================= */
+    /* ================= LOAD ACTIVE ================= */
     private void loadData() {
         tableModel.setRowCount(0);
         List<PhanCong> list = phanCongDB.getAllActive();
-
         for (PhanCong pc : list) {
             tableModel.addRow(new Object[]{
                     pc.getMaPC(),
@@ -157,6 +180,23 @@ public class PhanCongPanel extends JPanel {
                     pc.getNamHoc()
             });
         }
+    }
+
+    /* ================= LOAD DELETED ================= */
+    private void loadDeletedData() {
+        tableModel.setRowCount(0);
+        List<PhanCong> list = phanCongDB.getDeleted();
+        for (PhanCong pc : list) {
+            tableModel.addRow(new Object[]{
+                    pc.getMaPC(),
+                    pc.getTenGV(),
+                    pc.getTenMon(),
+                    pc.getTenLop(),
+                    pc.getHocKy(),
+                    pc.getNamHoc()
+            });
+        }
+        btnRestore.setEnabled(true);
     }
 
     /* ================= ADD ================= */
@@ -210,7 +250,6 @@ public class PhanCongPanel extends JPanel {
         if (row < 0) return;
 
         int maPC = (int) table.getValueAt(row, 0);
-
         if (JOptionPane.showConfirmDialog(
                 this, "Xóa phân công này?", "Xác nhận",
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
@@ -227,9 +266,6 @@ public class PhanCongPanel extends JPanel {
     private void fillFormFromTable() {
         int row = table.getSelectedRow();
         if (row < 0) return;
-
-        btnUpdate.setEnabled(true);
-        btnDelete.setEnabled(true);
 
         String tenGV = table.getValueAt(row, 1).toString();
         String tenMon = table.getValueAt(row, 2).toString();
@@ -257,8 +293,6 @@ public class PhanCongPanel extends JPanel {
         cboHocKy.setSelectedIndex(0);
         txtNamHoc.setText("2024-2025");
         table.clearSelection();
-        btnUpdate.setEnabled(false);
-        btnDelete.setEnabled(false);
     }
 
     /* ================= LOAD COMBO ================= */
@@ -267,7 +301,6 @@ public class PhanCongPanel extends JPanel {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next())
                 cboGiangVien.addItem(rs.getString("MaGV") + " - " + rs.getString("HoTen"));
         } catch (Exception e) {
@@ -280,7 +313,6 @@ public class PhanCongPanel extends JPanel {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next())
                 cboMonHoc.addItem(rs.getString("MaMon") + " - " + rs.getString("TenMon"));
         } catch (Exception e) {
@@ -293,7 +325,6 @@ public class PhanCongPanel extends JPanel {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next())
                 cboLop.addItem(rs.getString("MaLop"));
         } catch (Exception e) {
