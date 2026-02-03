@@ -21,14 +21,13 @@ public class ThongKePanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBackground(Color.WHITE);
 
-        /* ================= FILTER ================= */
         JPanel filter = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         cboHocKy = new JComboBox<>(new Integer[]{1, 2, 3});
         cboNamHoc = new JComboBox<>();
         btnThongKe = new JButton("Thống kê");
 
-        loadNamHoc(); // <<< load động từ DB
+        loadNamHoc(); 
 
         filter.add(new JLabel("Học kỳ"));
         filter.add(cboHocKy);
@@ -38,7 +37,6 @@ public class ThongKePanel extends JPanel {
 
         add(filter, BorderLayout.NORTH);
 
-        /* ================= TABLE LỚP ================= */
         modelLop = new DefaultTableModel(
                 new Object[]{"Lớp", "Tổng SV", "Đậu", "Rớt", "Tỷ lệ (%)"}, 0
         );
@@ -47,7 +45,6 @@ public class ThongKePanel extends JPanel {
         tblLop.setRowHeight(26);
         tblLop.setDefaultEditor(Object.class, null);
 
-        /* ================= TABLE MÔN ================= */
         modelMon = new DefaultTableModel(
                 new Object[]{"Mã môn", "Tên môn", "Số SV", "Điểm TB"}, 0
         );
@@ -69,7 +66,6 @@ public class ThongKePanel extends JPanel {
         btnThongKe.addActionListener(e -> thongKe());
     }
 
-    /* ================= LOAD NĂM HỌC ================= */
     private void loadNamHoc() {
         cboNamHoc.removeAllItems();
         for (String nh : thongKeDB.getAllNamHoc()) {
@@ -77,7 +73,6 @@ public class ThongKePanel extends JPanel {
         }
     }
 
-    /* ================= THỐNG KÊ ================= */
     private void thongKe() {
         int hocKy = (int) cboHocKy.getSelectedItem();
         String namHoc = cboNamHoc.getSelectedItem().toString();

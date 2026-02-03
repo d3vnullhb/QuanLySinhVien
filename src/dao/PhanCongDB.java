@@ -158,41 +158,72 @@ public class PhanCongDB {
     }
 
     /* ================= INSERT ================= */
-    public boolean insert(String maGV, String maMon, String maLop, int hocKy, String namHoc) {
+   public boolean insert(String maGV, String maMon, String maLop, int hocKy, String namHoc) {
 
-        if (existsPhanCong(maGV, maMon, maLop, hocKy, namHoc)) {
-            JOptionPane.showMessageDialog(null,
-                    "Phân công này đã tồn tại!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        String sql = """
-            INSERT INTO PhanCong (MaGV, MaMon, MaLop, HocKy, NamHoc, TrangThai)
-            VALUES (?, ?, ?, ?, ?, 1)
-        """;
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maGV);
-            ps.setString(2, maMon);
-            ps.setString(3, maLop);
-            ps.setInt(4, hocKy);
-            ps.setString(5, namHoc);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Không thể thêm phân công!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
+    if (existsPhanCong(maGV, maMon, maLop, hocKy, namHoc)) {
+        JOptionPane.showMessageDialog(null,
+                "Phân công này đã tồn tại!",
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
         return false;
     }
+
+    String sqlPC = """
+        INSERT INTO PhanCong (MaGV, MaMon, MaLop, HocKy, NamHoc, TrangThai)
+        VALUES (?, ?, ?, ?, ?, 1)
+    """;
+
+    String sqlAddSV = """
+        INSERT INTO Diem (MaSV, MaMon, HocKy, NamHoc, LanThi, MaGV)
+        SELECT MaSV, ?, ?, ?, 1, ?
+        FROM SinhVien
+        WHERE MaLop = ?
+          AND TrangThai = N'Đang học'
+          AND MaSV NOT IN (
+                SELECT MaSV FROM Diem
+                WHERE MaMon = ?
+                  AND HocKy = ?
+                  AND NamHoc = ?
+          )
+    """;
+
+    try (Connection con = DBConnection.getConnection()) {
+        con.setAutoCommit(false); // transaction
+
+        try (PreparedStatement psPC = con.prepareStatement(sqlPC)) {
+            psPC.setString(1, maGV);
+            psPC.setString(2, maMon);
+            psPC.setString(3, maLop);
+            psPC.setInt(4, hocKy);
+            psPC.setString(5, namHoc);
+            psPC.executeUpdate();
+        }
+
+        // AUTO THÊM SINH VIÊN VÀO MÔN THEO LỚP
+        try (PreparedStatement psSV = con.prepareStatement(sqlAddSV)) {
+            psSV.setString(1, maMon);
+            psSV.setInt(2, hocKy);
+            psSV.setString(3, namHoc);
+            psSV.setString(4, maGV);
+            psSV.setString(5, maLop);
+            psSV.setString(6, maMon);
+            psSV.setInt(7, hocKy);
+            psSV.setString(8, namHoc);
+            psSV.executeUpdate();
+        }
+
+        con.commit();
+        return true;
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,
+                "Không thể thêm phân công!",
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+    return false;
+}
 
     /* ================= UPDATE ================= */
     public boolean update(int maPC, String maGV, String maMon, String maLop, int hocKy, String namHoc) {

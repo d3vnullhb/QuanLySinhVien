@@ -285,4 +285,51 @@ public class GiangVienDB {
         }
         return false;
     }
+public boolean existsMaGV(String maGV) {
+    String sql = "SELECT COUNT(*) FROM GiangVien WHERE MaGV = ?";
+    try (Connection c = DBConnection.getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, maGV);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1) > 0;
+    } catch (Exception e) { e.printStackTrace(); }
+    return false;
+}
+
+
+public GiangVien getByMaGV(String maGV) {
+    String sql = "SELECT * FROM GiangVien WHERE MaGV = ?";
+    try (Connection c = DBConnection.getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, maGV);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return new GiangVien(
+                rs.getString("MaGV"), rs.getString("HoTen"),
+                rs.getString("Email"), rs.getString("MaKhoa"),
+                rs.getString("TenDangNhap"), rs.getString("TrangThai")
+            );
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+    return null;
+}
+
+
+public boolean update(String maGV, String hoTen, String email, String maKhoa, String tenDangNhap) {
+    String sql = """
+        UPDATE GiangVien 
+        SET HoTen = ?, Email = ?, MaKhoa = ?, TenDangNhap = ? 
+        WHERE MaGV = ?
+    """;
+    try (Connection c = DBConnection.getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, hoTen);
+        ps.setString(2, email);
+        ps.setString(3, maKhoa);
+        ps.setString(4, tenDangNhap);
+        ps.setString(5, maGV);
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) { e.printStackTrace(); }
+    return false;
+}
 }
