@@ -84,16 +84,19 @@ public class ThoiKhoaBieuDB {
       }
 
 
-    private boolean isConflict(
-            Connection con,
-            String maLop, String maGV, String phong,
-            Date ngayHoc, int tietBD, int soTiet, Integer ignoreId
-    ) throws Exception {
+   private boolean isConflict(
+        Connection con,
+        String maLop, String maGV, String phong,
+        Date ngayHoc, int thu,
+        int tietBD, int soTiet,
+        Integer ignoreId
+) throws Exception {
 
         String sql = """
             SELECT COUNT(*) FROM ThoiKhoaBieu
             WHERE TrangThai = 1
               AND NgayHoc = ?
+              AND Thu = ?
               AND (MaLop = ? OR MaGV = ? OR Phong = ?)
               AND (
                     TietBatDau < ? + ?
@@ -104,6 +107,7 @@ public class ThoiKhoaBieuDB {
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             int i = 1;
             ps.setDate(i++, ngayHoc);
+            ps.setInt(i++, thu);
             ps.setString(i++, maLop);
             ps.setString(i++, maGV);
             ps.setString(i++, phong);
@@ -125,7 +129,9 @@ public class ThoiKhoaBieuDB {
     ) throws Exception {
 
         try (Connection con = DBConnection.getConnection()) {
-            if (isConflict(con, maLop, maGV, phong, ngayHoc, tietBatDau, soTiet, null))
+            if (isConflict(con, maLop, maGV, phong,
+                    ngayHoc, thu,
+                    tietBatDau, soTiet, null))
                 throw new Exception("Trùng lịch");
 
             String sql = """
@@ -153,9 +159,10 @@ public class ThoiKhoaBieuDB {
     public void update(ThoiKhoaBieu t) throws Exception {
         try (Connection con = DBConnection.getConnection()) {
             if (isConflict(con,
-                    t.getMaLop(), t.getMaGV(), t.getPhong(),
-                    t.getNgayHoc(), t.getTietBatDau(), t.getSoTiet(), t.getMaTKB()
-            ))
+        t.getMaLop(), t.getMaGV(), t.getPhong(),
+        t.getNgayHoc(), t.getThu(),
+        t.getTietBatDau(), t.getSoTiet(), t.getMaTKB()
+))
                 throw new Exception("Trùng lịch");
 
             String sql = """
@@ -213,8 +220,12 @@ public class ThoiKhoaBieuDB {
 
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 for (String[] a : rows) {
-                    if (isConflict(con, a[0], a[2], a[7], Date.valueOf(a[3]),
-                            Integer.parseInt(a[5]), Integer.parseInt(a[6]), null))
+                   if (isConflict(con, a[0], a[2], a[7],
+        Date.valueOf(a[3]),
+        Integer.parseInt(a[4]),
+        Integer.parseInt(a[5]),
+        Integer.parseInt(a[6]),
+        null))
                         throw new Exception("CSV có dòng trùng lịch");
 
                     ps.setString(1, a[0]);
